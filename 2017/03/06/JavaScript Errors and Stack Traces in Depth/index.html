@@ -1,0 +1,826 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="JavaScript,translation," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="原文地址：http://lucasfcosta.com/2017/02/17/JavaScript-Errors-and-Stack-Traces.html
+(｡･∀･)ﾉﾞ嗨，大家好！鉴于我几个星期没有写些什么关于JavaScript的东西了，是时候让我们回到正轨了。
+这一次，我们将会来探讨一下 errors 和 stack traces，并且熟练的掌握它们。
+有些时候人们的确不太注意这些细节，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【翻译】深入了解JavaScript错误和堆栈追踪">
+<meta property="og:url" content="http://yoursite.com/2017/03/06/JavaScript Errors and Stack Traces in Depth/index.html">
+<meta property="og:site_name" content="Veda">
+<meta property="og:description" content="原文地址：http://lucasfcosta.com/2017/02/17/JavaScript-Errors-and-Stack-Traces.html
+(｡･∀･)ﾉﾞ嗨，大家好！鉴于我几个星期没有写些什么关于JavaScript的东西了，是时候让我们回到正轨了。
+这一次，我们将会来探讨一下 errors 和 stack traces，并且熟练的掌握它们。
+有些时候人们的确不太注意这些细节，">
+<meta property="og:updated_time" content="2017-03-21T17:17:44.768Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【翻译】深入了解JavaScript错误和堆栈追踪">
+<meta name="twitter:description" content="原文地址：http://lucasfcosta.com/2017/02/17/JavaScript-Errors-and-Stack-Traces.html
+(｡･∀･)ﾉﾞ嗨，大家好！鉴于我几个星期没有写些什么关于JavaScript的东西了，是时候让我们回到正轨了。
+这一次，我们将会来探讨一下 errors 和 stack traces，并且熟练的掌握它们。
+有些时候人们的确不太注意这些细节，">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '45UGH4CJ52',
+      apiKey: 'c88fb708849de8d55c0523c1f9addc08',
+      indexName: 'garannodou',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/03/06/JavaScript Errors and Stack Traces in Depth/"/>
+
+
+
+
+
+  <title> 【翻译】深入了解JavaScript错误和堆栈追踪 | Veda </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Veda</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <p class="site-subtitle">A collection of my tranlation and a few of mind。</p>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/06/JavaScript Errors and Stack Traces in Depth/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="张煜航">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/8102750?v=3&s=460">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Veda">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Veda" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【翻译】深入了解JavaScript错误和堆栈追踪
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-03-06T00:00:00+08:00">
+                2017-03-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/03/06/JavaScript Errors and Stack Traces in Depth/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/06/JavaScript Errors and Stack Traces in Depth/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>原文地址：<a href="http://lucasfcosta.com/2017/02/17/JavaScript-Errors-and-Stack-Traces.html" target="_blank" rel="external">http://lucasfcosta.com/2017/02/17/JavaScript-Errors-and-Stack-Traces.html</a></p>
+<p>(｡･∀･)ﾉﾞ嗨，大家好！鉴于我几个星期没有写些什么关于JavaScript的东西了，是时候让我们回到正轨了。</p>
+<p>这一次，我们将会来探讨一下 errors 和 stack traces，并且熟练的掌握它们。</p>
+<p>有些时候人们的确不太注意这些细节，但是这些细节知识在当你写一个库，并且需要测试和调错时会非常有用。举个例子，这周在 Chai 时，我们有一个很棒的pull-request，关于如何提升我们在堆栈追踪的处理能力上，从而能够使我们的用户能够在 assert 测试失败时，能够获得更多的信息。</p>
+<p>熟练的操控堆栈追踪能偶让你清理掉一些不必要的干扰信息，从而能够关注于真正的问题上。此外，当你理解什么是错误及其属性，你会感到更有信心利用它。</p>
+<p><strong>这篇博文在开头可能看起来太浅显了，但是当我们开始操作堆栈追踪时，它变得相当复杂，因此在我们进入那个章节之前，请确保您对以前的内容有了很好的理解。</strong></p>
+<h3 id="调用堆栈是如何工作的"><a href="#调用堆栈是如何工作的" class="headerlink" title="调用堆栈是如何工作的"></a>调用堆栈是如何工作的</h3><p>在我们讨论errors之前，我们必须理解调用堆栈是如何工作的。（的确）这很单调，不过在深入之前理解这些是很有必要的。如果你已经知道了这些，请随意跳过这节。</p>
+<p><strong>当一个方法被调用时，它会被push到栈顶。在它执行完成后，它会从栈顶被移除。</strong></p>
+<p>这种数据结构有趣的地方在于 <strong>最后进来的元素会最先出去</strong>。同样这被称作 LIFO (后入先出) 原则。</p>
+<p>给你看另一个例子，假设你有如下代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">c</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'c'</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">b</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'b'</span>);</div><div class="line">    c();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'a'</span>);</div><div class="line">    b();</div><div class="line">&#125;</div><div class="line"></div><div class="line">a();</div></pre></td></tr></table></figure>
+<p>在上面的例子中，当运行方法a时，它被添加到我们栈的顶部。然后，当方法 b 在方法 a 内被调用时，它也被添加到了栈顶。同样的事也发生在方法 c 在方法 b 内被调用时。</p>
+<p>当运行方法 c 时，我们的堆栈追踪内顺序包含 a, b, c 三个方法。</p>
+<p>一旦方法 c 结束运行，它从栈顶被移除，控制权重新交回给方法 b 。当方法 b 完成时，它也从栈顶被移除，现在控制权被交回到了方法 a 手中。最终，当方法 a 结束运行后，它同样也从栈顶被移除。</p>
+<p>为了更好的演示这些行为，我们将会使用<code>console.trace()</code>方法。它能够在控制台种将当前的堆栈信息打印出来。同样，你应该从上到下来阅读这些信息。仔细想想下面每一行代码被调用时都发生了什么。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">c</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'c'</span>);</div><div class="line">    <span class="built_in">console</span>.trace();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">b</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'b'</span>);</div><div class="line">    c();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'a'</span>);</div><div class="line">    b();</div><div class="line">&#125;</div><div class="line"></div><div class="line">a();</div></pre></td></tr></table></figure>
+<p>当代码在 node REPL 运行时，我们得到下面一些信息。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">Trace</div><div class="line">    at c (repl:<span class="number">3</span>:<span class="number">9</span>)</div><div class="line">    at b (repl:<span class="number">3</span>:<span class="number">1</span>)</div><div class="line">    at a (repl:<span class="number">3</span>:<span class="number">1</span>)</div><div class="line">    at repl:<span class="number">1</span>:<span class="number">1</span> <span class="comment">// &lt;-- 这个指针下面的东西都是Nodejs的内部实现，无视就好</span></div><div class="line">    at realRunInThisContextScript (vm.js:<span class="number">22</span>:<span class="number">35</span>)</div><div class="line">    at sigintHandlersWrap (vm.js:<span class="number">98</span>:<span class="number">12</span>)</div><div class="line">    at ContextifyScript.Script.runInThisContext (vm.js:<span class="number">24</span>:<span class="number">12</span>)</div><div class="line">    at REPLServer.defaultEval (repl.js:<span class="number">313</span>:<span class="number">29</span>)</div><div class="line">    at bound (domain.js:<span class="number">280</span>:<span class="number">14</span>)</div><div class="line">    at REPLServer.runBound [<span class="keyword">as</span> <span class="built_in">eval</span>] (domain.js:<span class="number">293</span>:<span class="number">12</span>)</div></pre></td></tr></table></figure>
+<p>简单的讲：你调用了一个东西，它被压入栈顶。当它完成了它就被弹出。就是这么简单。</p>
+<h3 id="错误对象和错误处理"><a href="#错误对象和错误处理" class="headerlink" title="错误对象和错误处理"></a>错误对象和错误处理</h3><p>当错误发生时，通常一个 <code>Error</code> 对象被抛出。<code>Error</code> 对象同样也被当作原型来使用，来拓展或创建自己的错误。</p>
+<p><code>Error.prototype</code> 对象通常包含下面属性：</p>
+<ul>
+<li><code>constructor</code> - 构造函数负责这个实例的原型。</li>
+<li><code>message</code> - 一条错误信息。</li>
+<li><code>name</code> - 错误的名称</li>
+</ul>
+<p>上述这些是标准的属性，有些时候不同的环境会有它们自己特定参数。在一些环境下，比如 Node, Firefox, Chrome, Edge, IE 10+, Opera 和 Safari 6+，我们甚至会有 <code>stack</code> 参数，它包含了一个错误的堆栈追踪信息。</p>
+<p><strong>一个错误的堆栈追踪信息包含所有到它自身的结构函数为止的栈帧信息</strong>。</p>
+<p>如果你希望了解更多的<code>Error</code>对象的参数，我非常推荐你去看看<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/prototype" target="_blank" rel="external">MDN上的这篇文章</a>.</p>
+<p>为了抛出一个错误你必须使用<code>throw</code> 关键词。为了<code>catch</code> 一个被抛出的错误，你必须用<code>try catch</code>将那些可能会抛出错误的代码包裹起来。Catch 同样可以接收一个被抛出的错误作为参数。</p>
+<p>如同在 java 种发生的一样， JavaScript 同样允许你在<code>try/catch</code>之后添加一个 <code>finally</code> 区块而不需要去关系 <code>try</code>区块内是否发生了错误。使用 <code>finally</code> 来做好一些善后工作，而不用关心你的操作是否正常工作。</p>
+<p>到目前为止的所有东西对于大多数人而言都很基础，所有让我们来看一些不太注意的细节。（译者： indeed 😭）</p>
+<p>你可以使用 <code>try</code>区块而不在后面带上 <code>catch</code>区块，但是这时必须带上 <code>finally</code>。这意味着你可以使用三种不同的try表达式结构：</p>
+<ul>
+<li><code>try...catch</code></li>
+<li><code>try...finally</code></li>
+<li><code>try...catch...finally</code></li>
+</ul>
+<p>Try表达式能够签到在其他的 <code>try</code> 表达式内，比如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span> &#123;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'Nested error.'</span>); <span class="comment">// 这里抛出的错误会被他自身的catch子句所捕获</span></div><div class="line">    &#125; <span class="keyword">catch</span> (nestedErr) &#123;</div><div class="line">        <span class="built_in">console</span>.log(<span class="string">'Nested catch'</span>); <span class="comment">// This runs</span></div><div class="line">    &#125;</div><div class="line">&#125; <span class="keyword">catch</span> (err) &#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'This will not run.'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>你同样可以将 <code>try</code>嵌入 <code>catch</code> 和 <code>finally</code> 区块内：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span> &#123;</div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'First error'</span>);</div><div class="line">&#125; <span class="keyword">catch</span> (err) &#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'First catch running'</span>);</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'Second error'</span>);</div><div class="line">    &#125; <span class="keyword">catch</span> (nestedErr) &#123;</div><div class="line">        <span class="built_in">console</span>.log(<span class="string">'Second catch running.'</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">try &#123;</div><div class="line">    console.log(&apos;The try block is running...&apos;);</div><div class="line">&#125; finally &#123;</div><div class="line">    try &#123;</div><div class="line">        throw new Error(&apos;Error inside finally.&apos;);</div><div class="line">    &#125; catch (err) &#123;</div><div class="line">        console.log(&apos;Caught an error inside the finally block.&apos;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>同样重要的是，<strong>你要知道throw 同样可以抛出非 <code>Error</code> 对象</strong>。尽管这看起来很cool，但是实际上真的不好，特别是那些需要在开发时使用其他库的开发者们，他们不得不去处理别人的代码，因为这之前并没有标准，你永远不会知道用户会给你什么东西。你不能信任他们而单纯的只是抛出一个<code>Error</code> 对象，因为他们可能选择不这么做，取而代之，而是抛出一个字符串或者数字。这使得你在处理堆栈追踪和其他一些有价值的元数据时变得困难。</p>
+<p>假设你有如下代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">runWithoutThrowing</span>(<span class="params">func</span>) </span>&#123;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        func();</div><div class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</div><div class="line">        <span class="built_in">console</span>.log(<span class="string">'There was an error, but I will not throw it.'</span>);</div><div class="line">        <span class="built_in">console</span>.log(<span class="string">'The error\'s message was: '</span> + e.message)</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">funcThatThrowsError</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">TypeError</span>(<span class="string">'I am a TypeError.'</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line">runWithoutThrowing(funcThatThrowsError);</div></pre></td></tr></table></figure>
+<p>当使用者传递一个含有错误抛出的方法到你的 <code>runWithoutThrowing</code>函数时，一切都正常工作。但是如果他们抛了一个 <code>String</code> 给你时，那你就有麻烦了：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">runWithoutThrowing</span>(<span class="params">func</span>) </span>&#123;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        func();</div><div class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</div><div class="line">        <span class="built_in">console</span>.log(<span class="string">'There was an error, but I will not throw it.'</span>);</div><div class="line">        <span class="built_in">console</span>.log(<span class="string">'The error\'s message was: '</span> + e.message)</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">funcThatThrowsString</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="keyword">throw</span> <span class="string">'I am a String.'</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line">runWithoutThrowing(funcThatThrowsString);</div></pre></td></tr></table></figure>
+<p>现在你的第二行 <code>console.log</code> 将告诉你 error 的 message 是 <code>undefined</code> 。这看起来在当前似乎不是很重要，不过如果你需要确认<code>Error</code> 对象内存在的一个特定的属性后者需要从用一种方法上处理 <code>Error</code> 特定属性时（比如  <a href="https://github.com/chaijs/chai/blob/a7e1200db4c144263599e5dd7a3f7d1893467160/lib/chai/core/assertions.js#L1506" target="_blank" rel="external">Chai’s<code>throws</code> 断言文档</a>），你需要做更多的工作。</p>
+<p>同样的，当抛出值不是 <code>Error</code>  对象时，你不需要去访问其他重要的数据，比如它的<code>stack</code>，一个在一些环境中 <code>Error</code> 对象所包含的字段。</p>
+<p>错误同样可以被当作其他（一般）的对象来使用，你并不一定要把他们抛出。这就是为什么它们经常被当初回调函数的第一个参数的原因。比如，在 <code>fs.readdir</code> 方法种：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">'fs'</span>);</div><div class="line"></div><div class="line">fs.readdir(<span class="string">'/example/i-do-not-exist'</span>, <span class="function"><span class="keyword">function</span> <span class="title">callback</span>(<span class="params">err, dirs</span>) </span>&#123;</div><div class="line">  <span class="keyword">if</span> (err <span class="keyword">instanceof</span> <span class="built_in">Error</span>) &#123;</div><div class="line">    <span class="comment">// `readdir` 将会抛出一个错误，因为这个文件根本不存在    </span></div><div class="line">    <span class="comment">// 现在我们能够使用回调函数中的错误对象了</span></div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'Error Message:'</span> + err.message);</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'See? We can use Errors without using try statements.'</span>);</div><div class="line">  &#125; <span class="keyword">else</span> &#123;</div><div class="line">    <span class="built_in">console</span>.log(dirs);</div><div class="line">  &#125;</div><div class="line">&#125;)</div></pre></td></tr></table></figure>
+<p>最后但并非不重要， <code>Error</code> 对象在 promise  reject 时被使用。这使得控制promise的rejections变得容易：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve, reject</span>) </span>&#123;</div><div class="line">  reject(<span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'The promise was rejected.'</span>));</div><div class="line">&#125;).then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.log(<span class="string">'I am an error.'</span>);</div><div class="line">&#125;).catch(<span class="function"><span class="keyword">function</span>(<span class="params">err</span>) </span>&#123;</div><div class="line">  <span class="keyword">if</span> (err <span class="keyword">instanceof</span> <span class="built_in">Error</span>) &#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'The promise was rejected with an error.'</span>);</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'Error Message:'</span> + err.message);</div><div class="line">  &#125;</div><div class="line">&#125;)</div></pre></td></tr></table></figure>
+<h3 id="操作堆栈追踪"><a href="#操作堆栈追踪" class="headerlink" title="操作堆栈追踪"></a>操作堆栈追踪</h3><p>现在就是你所期待的部分了：如何去操作堆栈追踪信息。</p>
+<p>这个章节只针对一些支持 <code>Error.captureStackTrace</code> 的特殊环境，比如 NodeJS。</p>
+<p>这个 <code>Error.captureStackTrace</code> 方法将一个 <code>object</code> 作为它的一个参数，一个可选的 <code>function</code> 作为它的第二个参数。这个 captureStackTrace 做的呢就是捕获当前的堆栈信息（废话）并且在一个大的对象中创建一个 <code>stack</code> 参数来保存它。如果提供了第二个参数，这个被传递的方法将会被认为是调用堆栈的重点。因此堆栈跟踪将仅显示在调用此函数之前发生的调用。</p>
+<p>让我们给一些例子来让这一切变得更清晰。首先，我们将会捕获当前的堆栈信息，并且将它保存在一个普通的对象中。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">const</span> myObj = &#123;&#125;;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">c</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  </div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">b</span>(<span class="params"></span>) </span>&#123; </div><div class="line">  <span class="comment">// 这里将会讲当前的堆栈信息储存到 myObj 中</span></div><div class="line">  <span class="built_in">Error</span>.captureStackTrace(myObj);</div><div class="line">  c();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  b();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 首先我们会调用这些方法</span></div><div class="line">a();</div><div class="line"></div><div class="line"><span class="comment">// 现在让我们看看什么堆栈信息被存入了 myObj.stack</span></div><div class="line"><span class="built_in">console</span>.log(myObj.stack);</div><div class="line"></div><div class="line"><span class="comment">// 这将会在控制台中打印出如下信息：</span></div><div class="line"><span class="comment">//    at b (repl:3:7) &lt;-- 因为它在B内被调用，所以B是堆栈中的最后一个条目</span></div><div class="line"><span class="comment">//    at a (repl:2:1)</span></div><div class="line"><span class="comment">//    at repl:1:1 &lt;-- 下面是 node 的内部实现</span></div><div class="line"><span class="comment">//    at realRunInThisContextScript (vm.js:22:35)</span></div><div class="line"><span class="comment">//    at sigintHandlersWrap (vm.js:98:12)</span></div><div class="line"><span class="comment">//    at ContextifyScript.Script.runInThisContext (vm.js:24:12)</span></div><div class="line"><span class="comment">//    at REPLServer.defaultEval (repl.js:313:29)</span></div><div class="line"><span class="comment">//    at bound (domain.js:280:14)</span></div><div class="line"><span class="comment">//    at REPLServer.runBound [as eval] (domain.js:293:12)</span></div><div class="line"><span class="comment">//    at REPLServer.onLine (repl.js:513:10)</span></div></pre></td></tr></table></figure>
+<p>正如你在上述例子中看到的，我们首先调用了 <code>a</code> （被压入了栈内）然后在 <code>a</code> 内调用了 <code>b</code> （被 push 在 <code>a</code> 上面）。然后，在 <code>b</code> 内，我们捕获到了当前的堆栈信息，并且存入了 <code>myObj</code>。 这就是为什么我们在控制台中只获得了 <code>a</code> 和 <code>b</code>。 </p>
+<p>现在，让我们传递一个方法作为第二个参数给<code>Error.captureStackTrace</code> 方法，来看会发生什么：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">const</span> myObj = &#123;&#125;;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">d</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="comment">// 这里我们将会储存当前的堆栈信息到 myObj 中</span></div><div class="line">  <span class="comment">// 这一次我么将会隐藏 `b` 之后以及它自身的栈帧 </span></div><div class="line">  <span class="built_in">Error</span>.captureStackTrace(myObj, b);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">c</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  d(); </div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">b</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  c();  </div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  b();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 首先我们会调用这些方法</span></div><div class="line">a();</div><div class="line"></div><div class="line"><span class="comment">// 现在让我们看看什么堆栈信息被存入了 myObj.stack</span></div><div class="line"><span class="built_in">console</span>.log(myObj.stack);</div><div class="line"></div><div class="line"><span class="comment">// 这将会在控制台中打印出如下信息：</span></div><div class="line"><span class="comment">//    at a (repl:2:1) &lt;-- 如你所见在这里我们只能获得 `b` 之前的被调用的栈帧</span></div><div class="line"><span class="comment">//    at repl:1:1 &lt;-- 下面是 node 的内部实现</span></div><div class="line"><span class="comment">//    at realRunInThisContextScript (vm.js:22:35)</span></div><div class="line"><span class="comment">//    at sigintHandlersWrap (vm.js:98:12)</span></div><div class="line"><span class="comment">//    at ContextifyScript.Script.runInThisContext (vm.js:24:12)</span></div><div class="line"><span class="comment">//    at REPLServer.defaultEval (repl.js:313:29)</span></div><div class="line"><span class="comment">//    at bound (domain.js:280:14)</span></div><div class="line"><span class="comment">//    at REPLServer.runBound [as eval] (domain.js:293:12)</span></div><div class="line"><span class="comment">//    at REPLServer.onLine (repl.js:513:10)</span></div><div class="line"><span class="comment">//    at emitOne (events.js:101:20)</span></div></pre></td></tr></table></figure>
+<p>当我们传递 <code>b</code> 给<code>Error.captureStackTrace</code> 函数时，它隐藏了 <code>b</code> 本身以及在它之上的所有栈帧。这就是为什么我们在堆栈追踪中只看到了<code>a</code>。</p>
+<p>现在你或许会问你自己： “为什么这东西有用？”。这个东西在当你试图对非你的用户隐藏内部实现细节时非常有用。在 Chai 内，举个例子， 们使用它来避免向我们的用户显示与我们实现检查和断言自身的方式无关的细节。</p>
+<h3 id="真实环境中的堆栈追踪操作"><a href="#真实环境中的堆栈追踪操作" class="headerlink" title="真实环境中的堆栈追踪操作"></a>真实环境中的堆栈追踪操作</h3><p>正如我在上一个小节提到的，Chai 使用堆栈操作技术来使得堆栈追踪与我们的用户（的操作）更加关联。下面是我们如何做的。</p>
+<p>首先，让我们看一看当断言失败时， <code>AssertionError</code> 构造函数会抛出什么：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// `ssfi` 代表 “start stack function”. 它指向堆栈追踪中删除不相关帧的起点</span></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">AssertionError</span> (<span class="params">message, _props, ssf</span>) </span>&#123;</div><div class="line">  <span class="keyword">var</span> extend = exclude(<span class="string">'name'</span>, <span class="string">'message'</span>, <span class="string">'stack'</span>, <span class="string">'constructor'</span>, <span class="string">'toJSON'</span>)</div><div class="line">    , props = extend(_props || &#123;&#125;);</div><div class="line">  </div><div class="line">  <span class="comment">// 默认值</span></div><div class="line">  <span class="keyword">this</span>.message = message || <span class="string">'Unspecified AssertionError'</span>;</div><div class="line">  <span class="keyword">this</span>.showDiff = <span class="literal">false</span>;</div><div class="line">  </div><div class="line">  <span class="comment">// 从参数中拷贝</span></div><div class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> key <span class="keyword">in</span> props) &#123;</div><div class="line">    <span class="keyword">this</span>[key] = props[key];</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  <span class="comment">// 这里就是与我们相关的部分：</span></div><div class="line">  <span class="comment">// 如果一个start stack function 被提供了，我们捕获了当前堆栈的追踪信息，并且将其传递给了 `captureStackTrace` 方法，那样我们移除在这个之后的栈帧了。</span></div><div class="line">  ssf = ssf || <span class="built_in">arguments</span>.callee;</div><div class="line">  <span class="keyword">if</span> (ssf &amp;&amp; <span class="built_in">Error</span>.captureStackTrace) &#123;</div><div class="line">    <span class="built_in">Error</span>.captureStackTrace(<span class="keyword">this</span>, ssf);</div><div class="line">  &#125; <span class="keyword">else</span> &#123;</div><div class="line">    <span class="comment">// 如果没有提供 start stack function 我们就用原来的 stack 属性。</span></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>();</div><div class="line">    &#125; <span class="keyword">catch</span>(e) &#123;</div><div class="line">      <span class="keyword">this</span>.stack = e.stack;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如你所见，在上面的代码中我们使用 <code>Error.captureStackTrace</code> 来捕获堆栈信息，并且将其储存在我们所生成的 <code>AssertionError</code> 实例中，（当它存在时）我们传递了一个 start stack function 给它来将不相干的栈帧从栈列内移除。这些仅仅展示了Chai的内部实现细节并且在最后污染了栈列。</p>
+<p>现在让我们看看现在由 <a href="https://github.com/meeber" target="_blank" rel="external">@meeber</a>在 <a href="https://github.com/chaijs/chai/pull/922" target="_blank" rel="external">这个碉堡的PR内</a>的代码是怎么写的.</p>
+<p>在我们看下面的代码之前，我必须告诉你 <code>addChainableMethod</code> 方法做了什么。它将传递给它的可链接方法添加到断言，并且还使用包含断言的方法标记断言本身。它以 <code>ssfi</code> 作为名称保存（代表了起始栈方法指示器）。这基本上意味着当前断言将是堆栈中的最后一帧，因此我们不会在堆栈中显示Chai中的任何进一步的内部方法。我避免添加整个代码，因为它有很多东西，而且有点棘手，但如果你想读它，<a href="https://github.com/meeber/chai/blob/42ff3c012b8a5978e7381b17d712521299ced341/lib/chai/utils/addChainableMethod.js" target="_blank" rel="external">这里是它的链接</a>.。</p>
+<p>在下面的代码中，我们有一个 <code>lengthOf</code> 断言的逻辑，它检查对象是否具有一个明确的 <code>长度</code>。我们希望我们的用户像这么用它：<code>expect([&#39;foo&#39;, &#39;bar&#39;]).to.have.lengthOf(2)</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">assertLength</span> (<span class="params">n, msg</span>) </span>&#123;</div><div class="line">    <span class="keyword">if</span> (msg) flag(<span class="keyword">this</span>, <span class="string">'message'</span>, msg);</div><div class="line">    <span class="keyword">var</span> obj = flag(<span class="keyword">this</span>, <span class="string">'object'</span>)</div><div class="line">        , ssfi = flag(<span class="keyword">this</span>, <span class="string">'ssfi'</span>);</div><div class="line"></div><div class="line">    <span class="comment">// 注意这一行</span></div><div class="line">    <span class="keyword">new</span> Assertion(obj, msg, ssfi, <span class="literal">true</span>).to.have.property(<span class="string">'length'</span>);</div><div class="line">    <span class="keyword">var</span> len = obj.length;</div><div class="line"></div><div class="line">    <span class="comment">// 这一行也同样相关</span></div><div class="line">    <span class="keyword">this</span>.assert(</div><div class="line">            len == n</div><div class="line">        , <span class="string">'expected #&#123;this&#125; to have a length of #&#123;exp&#125; but got #&#123;act&#125;'</span></div><div class="line">        , <span class="string">'expected #&#123;this&#125; to not have a length of #&#123;act&#125;'</span></div><div class="line">        , n</div><div class="line">        , len</div><div class="line">    );</div><div class="line">&#125;</div><div class="line"></div><div class="line">Assertion.addChainableMethod(<span class="string">'lengthOf'</span>, assertLength, assertLengthChain);</div></pre></td></tr></table></figure>
+<p>在上面的代码中，我突出强调了与我们现在相关的代码段。我们先来看看 <code>this.assert</code> 的调用。</p>
+<p>下面是 <code>this.assert</code> 方法的代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">Assertion.prototype.assert = <span class="function"><span class="keyword">function</span> (<span class="params">expr, msg, negateMsg, expected, _actual, showDiff</span>) </span>&#123;</div><div class="line">    <span class="keyword">var</span> ok = util.test(<span class="keyword">this</span>, <span class="built_in">arguments</span>);</div><div class="line">    <span class="keyword">if</span> (<span class="literal">false</span> !== showDiff) showDiff = <span class="literal">true</span>;</div><div class="line">    <span class="keyword">if</span> (<span class="literal">undefined</span> === expected &amp;&amp; <span class="literal">undefined</span> === _actual) showDiff = <span class="literal">false</span>;</div><div class="line">    <span class="keyword">if</span> (<span class="literal">true</span> !== config.showDiff) showDiff = <span class="literal">false</span>;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (!ok) &#123;</div><div class="line">        msg = util.getMessage(<span class="keyword">this</span>, <span class="built_in">arguments</span>);</div><div class="line">        <span class="keyword">var</span> actual = util.getActual(<span class="keyword">this</span>, <span class="built_in">arguments</span>);</div><div class="line"></div><div class="line">        <span class="comment">// 这里是我们所要关注的行</span></div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> AssertionError(msg, &#123;</div><div class="line">                <span class="attr">actual</span>: actual</div><div class="line">            , <span class="attr">expected</span>: expected</div><div class="line">            , <span class="attr">showDiff</span>: showDiff</div><div class="line">        &#125;, (config.includeStack) ? <span class="keyword">this</span>.assert : flag(<span class="keyword">this</span>, <span class="string">'ssfi'</span>));</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>基本上，<code>assert</code>方法负责检查是否通过了布尔表达式的断言。如果没有，我们必须实例化一个<code>AssertionError</code>。请注意，当实例化这个新的<code>AssertionError</code>时，我们也向其传递一个堆栈跟踪功能指示符（<code>ssfi</code>）。如果配置标志<code>includeStack</code>被打开，我们通过将<code>this.assert</code>本身传递给它来显示整个堆栈跟踪，这真的是堆栈中的最后一帧。但是，如果<code>includeStack</code>配置标志被启用，我们必须从堆栈跟踪中隐藏更多的内部实现细节，所以我们使用什么存储到<code>ssfi</code>标志。</p>
+<p>现在，我们来谈谈另一个相关的行：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">new</span> Assertion(obj, msg, ssfi, <span class="literal">true</span>).to.have.property(<span class="string">'length'</span>);</div></pre></td></tr></table></figure>
+<p>正如你可以看到的，我们在创建我们的嵌套断言时传递了我们从<code>ssfi</code>标志获得的内容。这意味着当创建新的断言时，它将使用此函数作为从堆栈跟踪中删除无用框架的起点。顺便说一下，这是<code>Assertion</code>构造函数：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">Assertion</span> (<span class="params">obj, msg, ssfi, lockSsfi</span>) </span>&#123;</div><div class="line">    <span class="comment">// This is the line that matters to us</span></div><div class="line">    flag(<span class="keyword">this</span>, <span class="string">'ssfi'</span>, ssfi || Assertion);</div><div class="line">    flag(<span class="keyword">this</span>, <span class="string">'lockSsfi'</span>, lockSsfi);</div><div class="line">    flag(<span class="keyword">this</span>, <span class="string">'object'</span>, obj);</div><div class="line">    flag(<span class="keyword">this</span>, <span class="string">'message'</span>, msg);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> util.proxify(<span class="keyword">this</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>你可以记住从我对<code>addChainableMethod</code>的说法，它设置<code>ssfi</code>标志与自己的包装方法，这意味着这是堆栈跟踪中最低的内部帧，所以我们可以删除所有上面的帧。</p>
+<p>通过将<code>ssfi</code>传递给嵌套断言，它只检查我们的对象是否具有属性长度，我们避免重置我们将用作起点指示符的帧，然后在堆栈中使得之前的<code>addChainableMethod</code>保持可见。</p>
+<p>这可能看起来有点复杂，所以让我们回顾一下Chai发生的事情，我们想从堆栈中删除无用的帧：</p>
+<ol>
+<li>当我们运行断言时，我们设置自己的方法作为删除堆栈中的下一个帧的参考</li>
+<li>断言运行，如果它失败，我们删除我们存储的引用后的所有内部帧</li>
+<li>如果我们有嵌套断言，我们仍然必须使用当前的断言包装方法作为删除堆栈中的下一个帧的参考点，所以我们将当前的<code>ssfi</code>（启动堆栈函数指示符）传递给我们正在创建的断言，以便它可以保留它</li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+          
+            <a href="/tags/translation/" rel="tag"># translation</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/02/13/React Fiber Architecture/" rel="next" title="【翻译】React Fiber架构">
+                <i class="fa fa-chevron-left"></i> 【翻译】React Fiber架构
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars3.githubusercontent.com/u/8102750?v=3&s=460"
+               alt="张煜航" />
+          <p class="site-author-name" itemprop="name">张煜航</p>
+          <p class="site-description motion-element" itemprop="description">Do you best, and God will do the lest.</p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#调用堆栈是如何工作的"><span class="nav-number">1.</span> <span class="nav-text">调用堆栈是如何工作的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#错误对象和错误处理"><span class="nav-number">2.</span> <span class="nav-text">错误对象和错误处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#操作堆栈追踪"><span class="nav-number">3.</span> <span class="nav-text">操作堆栈追踪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#真实环境中的堆栈追踪操作"><span class="nav-number">4.</span> <span class="nav-text">真实环境中的堆栈追踪操作</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张煜航</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'garannodou';
+      var disqus_identifier = '2017/03/06/JavaScript Errors and Stack Traces in Depth/';
+
+      var disqus_title = "【翻译】深入了解JavaScript错误和堆栈追踪";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/lib/algolia-instant-search/instantsearch.min.css">
+
+  
+  
+  <script src="/lib/algolia-instant-search/instantsearch.min.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=5.1.0"></script>
+
+
+
+</body>
+</html>

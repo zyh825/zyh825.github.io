@@ -1,0 +1,819 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="react,debug," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="这是 React 的性能优化的第二部分。在第一部分中，我们简单的了解了怎么去使用 React 的 Perf 调试工具，常规的 React 的渲染瓶颈，和一些调试的小技巧。如果您还没准备好（继续深入）的话，那最好先去把它（Part 1） 看了
+在第二部分中，我们会继续深入react调试的工作流 - 既然已经给了这些个想法，那又会如何在练习中体现呢？（自问自答）我们将会通过一些切合时机的例子，并且使用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【翻译】深入 React Pref 调试 (PART2)">
+<meta property="og:url" content="http://yoursite.com/2016/12/04/A deep dive into react perf debugging (part 2)/index.html">
+<meta property="og:site_name" content="Veda">
+<meta property="og:description" content="这是 React 的性能优化的第二部分。在第一部分中，我们简单的了解了怎么去使用 React 的 Perf 调试工具，常规的 React 的渲染瓶颈，和一些调试的小技巧。如果您还没准备好（继续深入）的话，那最好先去把它（Part 1） 看了
+在第二部分中，我们会继续深入react调试的工作流 - 既然已经给了这些个想法，那又会如何在练习中体现呢？（自问自答）我们将会通过一些切合时机的例子，并且使用">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/0.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/IipbV.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/2.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/3.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/4.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/hSPOL.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/6.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/7.png">
+<meta property="og:updated_time" content="2017-03-21T15:41:48.930Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【翻译】深入 React Pref 调试 (PART2)">
+<meta name="twitter:description" content="这是 React 的性能优化的第二部分。在第一部分中，我们简单的了解了怎么去使用 React 的 Perf 调试工具，常规的 React 的渲染瓶颈，和一些调试的小技巧。如果您还没准备好（继续深入）的话，那最好先去把它（Part 1） 看了
+在第二部分中，我们会继续深入react调试的工作流 - 既然已经给了这些个想法，那又会如何在练习中体现呢？（自问自答）我们将会通过一些切合时机的例子，并且使用">
+<meta name="twitter:image" content="http://benchling.engineering/content/images/2016/02/0.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '45UGH4CJ52',
+      apiKey: 'c88fb708849de8d55c0523c1f9addc08',
+      indexName: 'garannodou',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/12/04/A deep dive into react perf debugging (part 2)/"/>
+
+
+
+
+
+  <title> 【翻译】深入 React Pref 调试 (PART2) | Veda </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Veda</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <p class="site-subtitle">A collection of my tranlation and a few of mind。</p>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/04/A deep dive into react perf debugging (part 2)/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="张煜航">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/8102750?v=3&s=460">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Veda">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Veda" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【翻译】深入 React Pref 调试 (PART2)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-12-04T12:21:33+08:00">
+                2016-12-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2016/12/04/A deep dive into react perf debugging (part 2)/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/12/04/A deep dive into react perf debugging (part 2)/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>这是 React 的性能优化的第二部分。在第一部分中，我们简单的了解了怎么去使用 React 的 Perf 调试工具，常规的 React 的渲染瓶颈，和一些调试的小技巧。如果您还没准备好（继续深入）的话，那最好先去把它（Part 1） 看了</p>
+<p>在第二部分中，我们会继续深入react调试的工作流 - 既然已经给了这些个想法，那又会如何在练习中体现呢？（自问自答）我们将会通过一些切合时机的例子，并且使用chrome的开发工具来分析和解决性能问题。（如果您在看完后有任何建议和新的想法，请让我们知道！）</p>
+<p>我们将会参考下面这段简单的代码 - 你可以看出它通过 React 渲染了一个简单的 todo list。在后面的 JS fiddle 代码片段中，你可以点击 “Result” 来看一个带交互的实际例子，complete with performance repros（不知道怎么翻译）。我们将会这过程中提交并更新 JS fiddles。</p>
+<h2 id="CASE-STUDY-1-TODOLIST"><a href="#CASE-STUDY-1-TODOLIST" class="headerlink" title="CASE STUDY #1: TODOLIST"></a>CASE STUDY #1: TODOLIST</h2><p>让我们开始上面的 <code>TodoList</code> 。通过尝试在代码未优化的例子中，快速的输入，你会发现它有多慢。</p>
+<p>让我们开始用<em>Chrome</em> 开发工具中的 <em>Timeline profiler</em> ，通过一些细节的切面的来看浏览器在做了些什么： 处理用户触发的事件，运行JS，渲染和绘制。在输入框内输入一个字符，然后停止 <em>Timeline profiler</em> 。这个过程中你不会感到明显的缓慢，因为我们只输入了一个字符，这是产生用以分析的少量信息的最快的手段。</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/0.png" alt="img"></p>
+<p>注意图中 <code>Event(textInput)</code> 进度条在 <code>Scripting(Children)</code> 中总计花费了121.10 ms 。这个时段切面中表明了这个缓慢问题是一个脚本的问题，而不是样式或重复计算导致的性能问题。</p>
+<p>所以让我们深入脚本。切换到 <em>Profiles tab</em> - <em>Timeline</em> 不仅给了我们浏览器（和 <em>JS Profile</em>）的一个概况，通过这些个代码运行切面则让我们得以继续深入 JS 的内部实现，而且给了我们各种各样可视化工具。根据另一份Profile， 它中指出运行缓慢的问题并不在于我们的应用代码：</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/IipbV.png" alt="img"></p>
+<p>将 Profile 的 <code>Heavy（Bottom up）</code> 按 <code>Total</code> 字段降序排列，结果指出消耗时间最多的部分是React <code>batchUpdates</code>方法的调用，这很明确的提示了问题出在 React 上。相反，通过 <code>Self</code> 来测量函数中除去子函数的花费的时间 - 根据  <code>Self</code> 排序来查看是否有明显的昂贵（花费时间多）的函数时，这并没有明显的性能瓶颈在应用层面的函数中，所以让我们换 React 的 Pref 来看看。</p>
+<p>为了声称一个针对缓慢操作的的评估切面，在console中，我们调用 <code>React.addons.Perf.start()</code>， 然后通过输入一个字符来重现缓慢的操作，然后输入<code>React.addons.Perf.stop()</code>结束监控。(最后) 通过输入 <code>React.addons.Perf.printWasted()</code>我们可以看到应用在不必要的渲染中花费的时间：</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/2.png" alt="img"></p>
+<p>这第一项表明<code>TodoItem</code>是由<code>Todos</code>渲染的，而（输入）<code>Perf.printWated()</code>可以看出，如果我们避免render树的反复构建，我们就可以省下100ms。 这看起来像是我们优化中最主要的部分。</p>
+<p>为了分析为什么TodoItem会浪费这么多时间，我们创建一个自定义的输入函数，以很明确的 <code>WhyDidYouUpdateMinxin</code>来命名它，它会嵌入组件并且打印一些信息，如触发了哪些更新和为什么更新。下面是代码；按你的需求随意使用它</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* eslint-disable no-console */</span></div><div class="line"><span class="keyword">import</span> _ <span class="keyword">from</span> <span class="string">'underscore'</span>;</div><div class="line"></div><div class="line"><span class="comment">/*</span></div><div class="line">Drop this mixin into a component that wastes time according to Perf.getWastedTime() to find</div><div class="line">out what state/props should be preserved. Once it says "Update avoidable!" for &#123;state, props&#125;,</div><div class="line">you should be able to drop in React.addons.PureRenderMixin</div><div class="line">React.createClass &#123;</div><div class="line">  mixins: [WhyDidYouUpdateMixin]</div><div class="line">&#125;</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">isRequiredUpdateObject</span>(<span class="params">o</span>) </span>&#123;</div><div class="line">  <span class="keyword">return</span> <span class="built_in">Array</span>.isArray(o) || (o &amp;&amp; o.constructor === <span class="built_in">Object</span>.prototype.constructor);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">deepDiff</span>(<span class="params">o1, o2, p</span>) </span>&#123;</div><div class="line">  <span class="keyword">const</span> notify = <span class="function">(<span class="params">status</span>) =&gt;</span> &#123;</div><div class="line">    <span class="built_in">console</span>.warn(<span class="string">'Update %s'</span>, status);</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'%cbefore'</span>, <span class="string">'font-weight: bold'</span>, o1);</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'%cafter '</span>, <span class="string">'font-weight: bold'</span>, o2);</div><div class="line">  &#125;;</div><div class="line">  <span class="keyword">if</span> (!_.isEqual(o1, o2)) &#123;</div><div class="line">    <span class="built_in">console</span>.group(p);</div><div class="line">    <span class="keyword">if</span> ([o1, o2].every(_.isFunction)) &#123;</div><div class="line">      notify(<span class="string">'avoidable?'</span>);</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (![o1, o2].every(isRequiredUpdateObject)) &#123;</div><div class="line">      notify(<span class="string">'required.'</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="keyword">const</span> keys = _.union(_.keys(o1), _.keys(o2));</div><div class="line">      <span class="keyword">for</span> (<span class="keyword">const</span> key <span class="keyword">of</span> keys) &#123;</div><div class="line">        deepDiff(o1[key], o2[key], key);</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="built_in">console</span>.groupEnd();</div><div class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (o1 !== o2) &#123;</div><div class="line">    <span class="built_in">console</span>.group(p);</div><div class="line">    notify(<span class="string">'avoidable!'</span>);</div><div class="line">    <span class="keyword">if</span> (_.isObject(o1) &amp;&amp; _.isObject(o2)) &#123;</div><div class="line">      <span class="keyword">const</span> keys = _.union(_.keys(o1), _.keys(o2));</div><div class="line">      <span class="keyword">for</span> (<span class="keyword">const</span> key <span class="keyword">of</span> keys) &#123;</div><div class="line">        deepDiff(o1[key], o2[key], key);</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="built_in">console</span>.groupEnd();</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">const</span> WhyDidYouUpdateMixin = &#123;</div><div class="line">  componentDidUpdate(prevProps, prevState) &#123;</div><div class="line">    deepDiff(&#123;<span class="attr">props</span>: prevProps, <span class="attr">state</span>: prevState&#125;,</div><div class="line">             &#123;<span class="attr">props</span>: <span class="keyword">this</span>.props, <span class="attr">state</span>: <span class="keyword">this</span>.state&#125;,</div><div class="line">             <span class="keyword">this</span>.constructor.displayName);</div><div class="line">  &#125;,</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="keyword">export</span> <span class="keyword">default</span> WhyDidYouUpdateMixin;</div></pre></td></tr></table></figure>
+<p>一旦我们在TodoItem中注入了这个函数，我们可以看到发生了一些什么：</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/3.png" alt="img"></p>
+<p>Aha! 我们看到tags这个变量在操作前后近似 - 这个注入函数告诉我们当两个状态对象深度相等而不是严格相等时，这时（渲染）是可以避免的。换个角度说，这个问题的难点在于如何判断两个方法是相等的，因为 <code>Fucntion.bind</code>声明了一个新的方法，尽管绑定的参数相同。这是一些有用的线索，既然如此 - 我们回过头来看看我们是如何传入<code>tags</code>和<code>deleteItem</code>的，看起来没错我们构建一个<code>TodoItem</code>时我们都传递了一些新的值。</p>
+<p>假如我们用传递未绑定的进入TodoItem, 同时我们将tags储存成常量，我们将可以避免这些个问题：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">diff --git i/example.js w/example.js</div><div class="line">index ba2427a.<span class="number">.2</span>edc85e <span class="number">100644</span></div><div class="line">--- i/example.js</div><div class="line">+++ w/example.js</div><div class="line">@@ <span class="number">-11</span>,<span class="number">10</span> +<span class="number">11</span>,<span class="number">13</span> @@ <span class="keyword">const</span> TodoItem = React.createClass(&#123;</div><div class="line">       <span class="attr">id</span>: React.PropTypes.number.isRequired,</div><div class="line">     &#125;).isRequired,</div><div class="line">   &#125;,</div><div class="line">+  deleteItem() &#123;</div><div class="line">+    <span class="keyword">this</span>.props.deleteItem(<span class="keyword">this</span>.props.item.id);</div><div class="line">+  &#125;,</div><div class="line">   render() &#123;</div><div class="line">     <span class="keyword">return</span> (</div><div class="line">       &lt;div&gt;</div><div class="line">-        &lt;button style=&#123;&#123;width: 30&#125;&#125; onClick=&#123;this.props.deleteItem&#125;&gt;x&lt;/button&gt;</div><div class="line">+        &lt;button style=&#123;&#123;width: 30&#125;&#125; onClick=&#123;this.deleteItem&#125;&gt;x&lt;/button&gt;</div><div class="line">         &lt;span&gt;&#123;this.props.item.text&#125;&lt;/span&gt;</div><div class="line">         &#123;this.props.tags.map((tag) =&gt; &#123;</div><div class="line">           return &lt;span key=&#123;tag&#125; className="tag"&gt; &#123;tag&#125;&lt;/span&gt;;</div><div class="line">@@ -26,6 +29,9 @@ const TodoItem = React.createClass(&#123;</div><div class="line"> </div><div class="line"> const Todos = React.createClass(&#123;</div><div class="line">   mixins: [React.addons.LinkedStateMixin],</div><div class="line">+  statics: &#123;</div><div class="line">+    tags: ['important', 'starred'],</div><div class="line">+  &#125;,</div><div class="line">   propTypes: &#123;</div><div class="line">     initialItems: React.PropTypes.arrayOf(React.PropTypes.shape(&#123;</div><div class="line">       text: React.PropTypes.string.isRequired,</div><div class="line">@@ -60,8 +66,8 @@ const Todos = React.createClass(&#123;</div><div class="line">         &lt;/form&gt;</div><div class="line">         &#123;<span class="keyword">this</span>.state.items.map(<span class="function">(<span class="params">item</span>) =&gt;</span> &#123;</div><div class="line">           <span class="keyword">return</span> (</div><div class="line">-            &lt;TodoItem key=&#123;item.id&#125; item=&#123;item&#125; tags=&#123;['important', 'starred']&#125;</div><div class="line">-             deleteItem=&#123;this.deleteItem.bind(null, item.id)&#125; /&gt;</div><div class="line">+            &lt;TodoItem key=&#123;item.id&#125; item=&#123;item&#125; tags=&#123;Todos.tags&#125;</div><div class="line">+             deleteItem=&#123;this.deleteItem&#125; /&gt;</div><div class="line">            );</div><div class="line">         &#125;)&#125;</div><div class="line">       &lt;/div&gt;</div></pre></td></tr></table></figure>
+<p><code>WhyDidYouUpdateMixin</code> 现在表明了 prevProps 和 newProps 浅相等。我们可以使用 PureRenderMixin，来避免当props（和state）浅相等时的组件更新。</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/4.png" alt="img"></p>
+<p>当我们重新运行Profiler，我们可以看到只花费了35ms（比原来的快了4倍）</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/hSPOL.png" alt="img"></p>
+<p>这比原来的好了，但是仍然不够理想。在输入框内打字不应该导致这么慢。这表明我们任然没有做到0（list的item数量级别）的工作。我们仅仅定义了常量，我们依然需要对每个item进行浅比较。</p>
+<p>此时，你可以能会认为1000个items在todolist中已经是极端的情况了，而且30ms的延迟，对你的应用而言并不是问题。如果你希望能够支持几千个子元素，那么，这任然没有达到理想的60fps</p>
+<p>（16ms 每帧 - 慢一点点你都会感受的到）。</p>
+<p>将组件拆分成多个组件作为下一步工作是有道理的（同样将之视为第一步也是合理的）。我们观察到Todos这个组件由两个没有交集的子组建构成，一个<code>AddTaskForm</code>组件包含了输入框和按钮，一个<code>TodoItems</code>组件包含了Items的列表。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">let</span> ID = <span class="number">0</span>; <span class="comment">// incrementing counter for todo item ids</span></div><div class="line"></div><div class="line"><span class="keyword">const</span> AddTaskForm = React.createClass(&#123;</div><div class="line">  <span class="attr">mixins</span>: [React.addons.LinkedStateMixin, React.addons.PureRenderMixin],</div><div class="line">  getInitialState() &#123;</div><div class="line">    <span class="keyword">return</span> &#123;</div><div class="line">      <span class="attr">text</span>: <span class="string">''</span>,</div><div class="line">    &#125;;</div><div class="line">  &#125;,</div><div class="line">  addTask(e) &#123;</div><div class="line">    e.preventDefault();</div><div class="line">    <span class="keyword">this</span>.props.addTask(<span class="keyword">this</span>.state.text);</div><div class="line">    <span class="keyword">this</span>.setState(&#123;<span class="attr">text</span>: <span class="string">''</span>&#125;);</div><div class="line">  &#125;,</div><div class="line">  render() &#123;</div><div class="line">    <span class="keyword">return</span> (</div><div class="line">      &lt;form onSubmit=&#123;this.addTask&#125;&gt;</div><div class="line">        &lt;input valueLink=&#123;this.linkState('text')&#125; /&gt;</div><div class="line">        &lt;button&gt;Add Task&lt;/button&gt;</div><div class="line">      &lt;/form&gt;</div><div class="line">    );</div><div class="line">  &#125;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">const TodoItems = React.createClass(&#123;</div><div class="line">  mixins: [React.addons.PureRenderMixin],</div><div class="line">  render() &#123;</div><div class="line">    return (</div><div class="line">      &lt;div&gt;</div><div class="line">        &#123;this.props.items.map((item) =&gt; &#123;</div><div class="line">          return (</div><div class="line">            &lt;TodoItem key=&#123;item.id&#125; item=&#123;item&#125; tags=&#123;Todos.tags&#125;</div><div class="line">             deleteItem=&#123;this.props.deleteItem&#125; /&gt;</div><div class="line">           );</div><div class="line">        &#125;)&#125;</div><div class="line">      &lt;/div&gt;</div><div class="line">    );</div><div class="line">  &#125;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">const TodoItem = React.createClass(&#123;</div><div class="line">  mixins: [React.addons.PureRenderMixin],</div><div class="line">  propTypes: &#123;</div><div class="line">    deleteItem: React.PropTypes.func.isRequired,</div><div class="line">    tags: React.PropTypes.arrayOf(React.PropTypes.string.isRequired).isRequired,</div><div class="line">    item: React.PropTypes.shape(&#123;</div><div class="line">      text: React.PropTypes.string.isRequired,</div><div class="line">      id: React.PropTypes.number.isRequired,</div><div class="line">    &#125;).isRequired,</div><div class="line">  &#125;,</div><div class="line">  deleteItem() &#123;</div><div class="line">    this.props.deleteItem(this.props.item.id);</div><div class="line">  &#125;,</div><div class="line">  render() &#123;</div><div class="line">    return (</div><div class="line">      &lt;div&gt;</div><div class="line">        &lt;button style=&#123;&#123;width: 30&#125;&#125; onClick=&#123;this.deleteItem&#125;&gt;x&lt;/button&gt;</div><div class="line">        &lt;span&gt;&#123;this.props.item.text&#125;&lt;/span&gt;</div><div class="line">        &#123;this.props.tags.map((tag) =&gt; &#123;</div><div class="line">          return &lt;span key=&#123;tag&#125; className="tag"&gt; &#123;tag&#125;&lt;/span&gt;;</div><div class="line">        &#125;)&#125;</div><div class="line">      &lt;/div&gt;</div><div class="line">    );</div><div class="line">  &#125;,</div><div class="line">&#125;);</div><div class="line"></div><div class="line">const Todos = React.createClass(&#123;</div><div class="line">  statics: &#123;</div><div class="line">    tags: ['important', 'starred'],</div><div class="line">  &#125;,</div><div class="line">  propTypes: &#123;</div><div class="line">    initialItems: React.PropTypes.arrayOf(React.PropTypes.shape(&#123;</div><div class="line">      text: React.PropTypes.string.isRequired,</div><div class="line">      id: React.PropTypes.number.isRequired,</div><div class="line">    &#125;).isRequired).isRequired,</div><div class="line">  &#125;,</div><div class="line">  getInitialState() &#123;</div><div class="line">    return &#123;</div><div class="line">      items: this.props.initialItems,</div><div class="line">    &#125;;</div><div class="line">  &#125;,</div><div class="line">  addTask(text) &#123;</div><div class="line">    this.setState(&#123;</div><div class="line">      items: [&#123;id: ID++, text&#125;].concat(this.state.items),</div><div class="line">    &#125;);</div><div class="line">  &#125;,</div><div class="line">  deleteItem(itemId) &#123;</div><div class="line">    this.setState(&#123;</div><div class="line">      items: this.state.items.filter((item) =&gt; item.id !== itemId),</div><div class="line">    &#125;);</div><div class="line">  &#125;,</div><div class="line">  render: function() &#123;</div><div class="line">    return (</div><div class="line">      &lt;div&gt;</div><div class="line">        &lt;h1&gt;My TODOs&lt;/h1&gt;</div><div class="line">        &lt;AddTaskForm addTask=&#123;this.addTask&#125; /&gt;</div><div class="line">        &lt;TodoItems items=&#123;this.state.items&#125; deleteItem=&#123;this.deleteItem&#125; /&gt;</div><div class="line">      &lt;/div&gt;</div><div class="line">   );</div><div class="line">  &#125;,</div><div class="line">&#125;);</div><div class="line"></div><div class="line">// Create a Todos component, initialized with 1000 items.</div><div class="line">const items = [];</div><div class="line">for (let i = 0; i &lt; 1000; i++) &#123;</div><div class="line">  items.push(&#123;id: ID++, text: 'Todo Item #' + i&#125;);</div><div class="line">&#125;</div><div class="line">React.render(&lt;Todos initialItems=&#123;items&#125; /&gt;, document.body);</div></pre></td></tr></table></figure>
+<p>任何一项重构都能提供实质的性能增益：</p>
+<ul>
+<li>如果我们通过PureRenderMixin来创建一个TodoItems，因为<code>prevProps.items === this.props.items</code>，我们将能通避免重新渲染每一个item来减少O(n)的时间消耗。</li>
+<li>如果我们创建一个AddTaskForm组件时，将文本的state至存在于组件内使，当文本改变时，将不会，Todos组件（列表部分）将不会重新渲染（避免了O（n）的渲染消耗）。</li>
+</ul>
+<p>（将以上的工作）合起来，我们每次键盘的按键操作只会消耗10ms</p>
+<h2 id="CASE-STUDY-2"><a href="#CASE-STUDY-2" class="headerlink" title="CASE STUDY #2:"></a>CASE STUDY #2:</h2><p>场景： 我们想在用户由太多的任务（&gt;3000）时，渲染一个警告，同时我们想给这些todo项添加一个背景样式。</p>
+<p>实施：</p>
+<ul>
+<li>我们由一个近似的todo列表的案例，用（之前的）<code>TodoItems</code>来实现 - 在这个李子中，我们将会把input的文本内容储存在最顶层的组件状态中。</li>
+<li>我们创建了一个<code>TaskWarning</code>的组件，来根据任务的数量来决定消息的渲染。为了封装这层逻辑，我们将会返回null，假如它不该被渲染。</li>
+<li>我们用样式给<code>div:nth-child(even)</code>所匹配到的元素添加一个灰色的背景。</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">let</span> ID = <span class="number">0</span>; <span class="comment">// incrementing counter for todo item ids</span></div><div class="line"></div><div class="line"><span class="keyword">const</span> TodoWarning = React.createClass(&#123;</div><div class="line">  <span class="attr">propTypes</span>: &#123;</div><div class="line">  	<span class="attr">itemCount</span>: React.PropTypes.number.isRequired</div><div class="line">  &#125;,</div><div class="line">  render() &#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.props.itemCount &gt; <span class="number">3000</span>) &#123;</div><div class="line">      <span class="keyword">return</span> &lt;div&gt;'YOU HAVE TOO MANY TASKS. SLOW DOWN.'&lt;/div&gt;;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</div><div class="line">  &#125;</div><div class="line">&#125;);</div><div class="line"></div><div class="line"><span class="keyword">const</span> TodoItems = React.createClass(&#123;</div><div class="line">  <span class="attr">mixins</span>: [React.addons.PureRenderMixin],</div><div class="line">  render() &#123;</div><div class="line">    <span class="keyword">return</span> (</div><div class="line">      &lt;div className="todoItems"&gt;</div><div class="line">        &#123;this.props.items.map((item) =&gt; &#123;</div><div class="line">          return (</div><div class="line">            &lt;TodoItem key=&#123;item.id&#125; item=&#123;item&#125; tags=&#123;Todos.tags&#125;</div><div class="line">             deleteItem=&#123;this.props.deleteItem&#125; /&gt;</div><div class="line">           );</div><div class="line">        &#125;)&#125;</div><div class="line">      &lt;/div&gt;</div><div class="line">    );</div><div class="line">  &#125;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">const TodoItem = React.createClass(&#123;</div><div class="line">  mixins: [React.addons.PureRenderMixin],</div><div class="line">  propTypes: &#123;</div><div class="line">    deleteItem: React.PropTypes.func.isRequired,</div><div class="line">    tags: React.PropTypes.arrayOf(React.PropTypes.string.isRequired).isRequired,</div><div class="line">    item: React.PropTypes.shape(&#123;</div><div class="line">      text: React.PropTypes.string.isRequired,</div><div class="line">      id: React.PropTypes.number.isRequired,</div><div class="line">    &#125;).isRequired,</div><div class="line">  &#125;,</div><div class="line">  deleteItem() &#123;</div><div class="line">    this.props.deleteItem(this.props.item.id);</div><div class="line">  &#125;,</div><div class="line">  render() &#123;</div><div class="line">    return (</div><div class="line">      &lt;div&gt;</div><div class="line">        &lt;button style=&#123;&#123;width: 30&#125;&#125; onClick=&#123;this.deleteItem&#125;&gt;x&lt;/button&gt;</div><div class="line">        &lt;span&gt;&#123;this.props.item.text&#125;&lt;/span&gt;</div><div class="line">        &#123;this.props.tags.map((tag) =&gt; &#123;</div><div class="line">          return &lt;span key=&#123;tag&#125; className="tag"&gt; &#123;tag&#125;&lt;/span&gt;;</div><div class="line">        &#125;)&#125;</div><div class="line">      &lt;/div&gt;</div><div class="line">    );</div><div class="line">  &#125;,</div><div class="line">&#125;);</div><div class="line"></div><div class="line">const Todos = React.createClass(&#123;</div><div class="line">  mixins: [React.addons.LinkedStateMixin],</div><div class="line">  statics: &#123;</div><div class="line">    tags: ['important', 'starred'],</div><div class="line">  &#125;,</div><div class="line">  propTypes: &#123;</div><div class="line">    initialItems: React.PropTypes.arrayOf(React.PropTypes.shape(&#123;</div><div class="line">      text: React.PropTypes.string.isRequired,</div><div class="line">      id: React.PropTypes.number.isRequired,</div><div class="line">    &#125;).isRequired).isRequired,</div><div class="line">  &#125;,</div><div class="line">  getInitialState() &#123;</div><div class="line">    return &#123;</div><div class="line">      items: this.props.initialItems,</div><div class="line">      text: '',</div><div class="line">    &#125;;</div><div class="line">  &#125;,</div><div class="line">  addTask(e) &#123;</div><div class="line">    e.preventDefault();</div><div class="line">    this.setState(&#123;</div><div class="line">      items: [&#123;id: ID++, text: this.state.text&#125;].concat(this.state.items),</div><div class="line">      text: '',</div><div class="line">    &#125;);</div><div class="line">  &#125;,</div><div class="line">  deleteItem(itemId) &#123;</div><div class="line">    this.setState(&#123;</div><div class="line">      items: this.state.items.filter((item) =&gt; item.id !== itemId),</div><div class="line">    &#125;);</div><div class="line">  &#125;,</div><div class="line">  render: function() &#123;</div><div class="line">    return (</div><div class="line">      &lt;div&gt;</div><div class="line">        &lt;TodoWarning itemCount=&#123;this.state.items.length&#125; /&gt;</div><div class="line">        &lt;h1&gt;My TODOs&lt;/h1&gt;</div><div class="line">        &lt;form onSubmit=&#123;this.addTask&#125;&gt;</div><div class="line">          &lt;input valueLink=&#123;this.linkState('text')&#125; /&gt;</div><div class="line">          &lt;button&gt;Add Task&lt;/button&gt;</div><div class="line">        &lt;/form&gt;</div><div class="line">        &lt;TodoItems items=&#123;this.state.items&#125; deleteItem=&#123;this.deleteItem&#125; /&gt;</div><div class="line">      &lt;/div&gt;</div><div class="line">   );</div><div class="line">  &#125;,</div><div class="line">&#125;);</div><div class="line"></div><div class="line">// Create a Todos component, initialized with 1000 items.</div><div class="line">const items = [];</div></pre></td></tr></table></figure>
+<p>观察诊断：在输入框内快速的输入，页面由很明显的延迟（不超过3000个任务）。如果我们继续添加一个任务（&gt; 3000 个任务），延迟随着按钮消失了。令人惊讶的地方，添加更多的任务似乎解决了这个任务!</p>
+<p>调试：Timeline Profile 展现了一些很有意思的东西：</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/6.png" alt="img"></p>
+<p>因为某些原因，输入单个字符时触发了大量的<code>Recalculate Style</code>，超过了30ms（这就是为什么当我们打字的速度大于30ms/每个字符时，我们会观察到Jank【注：应用刷新的速率没有达到设备的刷新速率而产生的卡顿现象】）。</p>
+<p>看看图片底部的<code>First invalidated</code>一节内容。它指出<code>Danger.dangerouslyReplaceNodeWithMarkup</code> 导致了页面的布局失效，从而导致了样式的重新计算。<code>react-with-addons.js:2301</code>处：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">oldChild.parentNode.replaceChild(newChild, oldChild);</div></pre></td></tr></table></figure>
+<p>因为某些原因，React 用一个完全新的DOM节点替换了原先的DOM节点！ 回想起来，生成DOM的操作时非常昂贵的。使用<code>Perf.printDOM()</code>，我们可以看到React在DOM操作时的性能：</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/7.png" alt="img"></p>
+<p>更新的属性反映了当在输入框输入<code>abc</code>时，TaskWarning是不可见的。然而，replace 项（图中的type）又指出了，此时React正在为TaskWarning组件创建DOM，尽管它看起来不应该有明确可见的实体DOM。</p>
+<p>正如上面所展示的，React（&lt;= v0.13）使用了一个<code>noscript</code>标签来渲染“no component”，但是却（在做diff时）错误的将两个noscript的标签视为了不相等：<code>noscript</code>最后被另一个noscript替换。此外，回想起来我们给其他的每个元素添加的一个灰色背景的样式。因为CSS的缘故，这3000个节点中任何一个的单独渲染都依赖与它之前的兄弟节点。每次noscript标签被替换，它随后的DOM节点的样式都会被重新计算。</p>
+<p>为了修复这个问题，我们可以：</p>
+<ul>
+<li>让TaskWarning 返回一个空的div</li>
+<li>将TaskWarning组件用一个div包裹起来，这样它就不会去影响css选择器对随后节点的选择。【意味不明】</li>
+<li>升级React :-)</li>
+</ul>
+<p>除此以外。这里最关键的一点时，我们能够自己分析出这些，仅仅通过Timeline Profiler!</p>
+<h1 id="CONCLUSION"><a href="#CONCLUSION" class="headerlink" title="CONCLUSION"></a>CONCLUSION</h1><p>我希望展示react的性能问题在各种开发工具中的表现是有用的（能够帮到大家）- 通过<em>Timeline </em>， <em>profiles</em>，和React的Perf工具的配合使用还有很长的道路要走。</p>
+<p>在todolisst中包含上千个项，和随意的着色，似乎有些刻意（简单将就是说我上面举得例子看起来有点不切实际），不过它所变面出的问题却和我们在做electronic lab notebook的项目中实际中遇到的渲染大量文档和表格时的问题很近似。</p>
+<p>（后面时招聘广告和客套话，省略…）</p>
+<h2 id="读后总结："><a href="#读后总结：" class="headerlink" title="读后总结："></a>读后总结：</h2><p>​    很老的一篇文章了（最然是今年年初的），原本是奔着文章的题目去的，不过发觉内容里貌似也没怎么深入，Perf的介绍和使用主要还是 <a href="http://benchling.engineering/performance-engineering-with-react/" target="_blank" rel="external">Part1</a> 中，不过在文中 timeline 和 profile的配合使用中还是学到了一些东西（思考问题的角度），之后看样子还是要好好的学习如何使用chrome 的devtool。</p>
+<p>总结几点吧：</p>
+<ul>
+<li>要使用PureComponentMixin，使用es6的class来创建组件时则应该继承PureComponent。</li>
+<li>合理的拆分组件（组件解耦）。</li>
+<li>常量不要在render时声明，应该抽到外面去。</li>
+<li>文中所提到的noscript的问题，在react的<a href="https://github.com/facebook/react/issues/2770" target="_blank" rel="external">https://github.com/facebook/react/issues/2770</a> 中已经解决了，所以返回null也没什么问题了。具体的<a href="https://github.com/facebook/react/pull/4825/commits/db589a717510d1a2d235d934a0eec4b5609b4e0b" target="_blank" rel="external">commit</a></li>
+<li>交互的相应理想的状态下要做到30ms内（难点）。文中提到 Jank 的概念。<a href="http://jankfree.org/" target="_blank" rel="external">http://jankfree.org/</a></li>
+<li>看源码！看源码！看源码！重要的事情说三遍。</li>
+<li>文中的图片请挂代理…</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/react/" rel="tag"># react</a>
+          
+            <a href="/tags/debug/" rel="tag"># debug</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/03/Smart-and-Dumb-Components/" rel="next" title="【翻译】展示组件和容器组件">
+                <i class="fa fa-chevron-left"></i> 【翻译】展示组件和容器组件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/01/31/Concurrency model and Event loop/" rel="prev" title="【翻译】并发模型和事件循环">
+                【翻译】并发模型和事件循环 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars3.githubusercontent.com/u/8102750?v=3&s=460"
+               alt="张煜航" />
+          <p class="site-author-name" itemprop="name">张煜航</p>
+          <p class="site-description motion-element" itemprop="description">Do you best, and God will do the lest.</p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CASE-STUDY-1-TODOLIST"><span class="nav-number">1.</span> <span class="nav-text">CASE STUDY #1: TODOLIST</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CASE-STUDY-2"><span class="nav-number">2.</span> <span class="nav-text">CASE STUDY #2:</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CONCLUSION"><span class="nav-number"></span> <span class="nav-text">CONCLUSION</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#读后总结："><span class="nav-number">1.</span> <span class="nav-text">读后总结：</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张煜航</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'garannodou';
+      var disqus_identifier = '2016/12/04/A deep dive into react perf debugging (part 2)/';
+
+      var disqus_title = "【翻译】深入 React Pref 调试 (PART2)";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/lib/algolia-instant-search/instantsearch.min.css">
+
+  
+  
+  <script src="/lib/algolia-instant-search/instantsearch.min.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=5.1.0"></script>
+
+
+
+</body>
+</html>

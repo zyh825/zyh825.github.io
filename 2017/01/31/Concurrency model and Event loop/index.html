@@ -1,0 +1,773 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="JavaScript,translation," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="原址：https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop
+
+JavaScript 有一个基于“事件循环”的并发模型。这个模型和其他语言中（C 和 JAVA）中的近似模型有着很大区别。
+运行时的概念下面的内容描述了一个理论模型。现在 JavaScript 引擎大量的声明和优化了上述语义。
+视觉展示
+栈函数的调用形成有一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【翻译】并发模型和事件循环">
+<meta property="og:url" content="http://yoursite.com/2017/01/31/Concurrency model and Event loop/index.html">
+<meta property="og:site_name" content="Veda">
+<meta property="og:description" content="原址：https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop
+
+JavaScript 有一个基于“事件循环”的并发模型。这个模型和其他语言中（C 和 JAVA）中的近似模型有着很大区别。
+运行时的概念下面的内容描述了一个理论模型。现在 JavaScript 引擎大量的声明和优化了上述语义。
+视觉展示
+栈函数的调用形成有一">
+<meta property="og:image" content="https://developer.mozilla.org/files/4617/default.svg">
+<meta property="og:updated_time" content="2017-03-21T15:41:48.938Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【翻译】并发模型和事件循环">
+<meta name="twitter:description" content="原址：https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop
+
+JavaScript 有一个基于“事件循环”的并发模型。这个模型和其他语言中（C 和 JAVA）中的近似模型有着很大区别。
+运行时的概念下面的内容描述了一个理论模型。现在 JavaScript 引擎大量的声明和优化了上述语义。
+视觉展示
+栈函数的调用形成有一">
+<meta name="twitter:image" content="https://developer.mozilla.org/files/4617/default.svg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '45UGH4CJ52',
+      apiKey: 'c88fb708849de8d55c0523c1f9addc08',
+      indexName: 'garannodou',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/01/31/Concurrency model and Event loop/"/>
+
+
+
+
+
+  <title> 【翻译】并发模型和事件循环 | Veda </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Veda</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <p class="site-subtitle">A collection of my tranlation and a few of mind。</p>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/31/Concurrency model and Event loop/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="张煜航">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/8102750?v=3&s=460">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Veda">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Veda" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【翻译】并发模型和事件循环
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-01-31T12:21:33+08:00">
+                2017-01-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/01/31/Concurrency model and Event loop/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/01/31/Concurrency model and Event loop/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>原址：<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop" target="_blank" rel="external">https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop</a></p>
+</blockquote>
+<p>JavaScript 有一个基于“事件循环”的并发模型。这个模型和其他语言中（C 和 JAVA）中的近似模型有着很大区别。</p>
+<h2 id="运行时的概念"><a href="#运行时的概念" class="headerlink" title="运行时的概念"></a>运行时的概念</h2><p>下面的内容描述了一个理论模型。现在 JavaScript 引擎大量的声明和优化了上述语义。</p>
+<h3 id="视觉展示"><a href="#视觉展示" class="headerlink" title="视觉展示"></a>视觉展示</h3><p><img src="https://developer.mozilla.org/files/4617/default.svg" alt="Stack, heap, queue"></p>
+<h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p>函数的调用形成有一系列帧组成的栈。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params">b</span>) </span>&#123;</div><div class="line">  <span class="keyword">var</span> a = <span class="number">10</span>;</div><div class="line">  <span class="keyword">return</span> a + b + <span class="number">11</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params">x</span>) </span>&#123;</div><div class="line">  <span class="keyword">var</span> y = <span class="number">3</span>;</div><div class="line">  <span class="keyword">return</span> foo(x * y);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="built_in">console</span>.log(bar(<span class="number">7</span>));</div></pre></td></tr></table></figure>
+<p>当调用 bar 时，第一帧被产生用以保存 bar 函数的引用参数和局部变量。当 bar 调用 foo 时，第二帧被生成用以保存 foo 的引用参数和局部变量并入栈。当 foo 返回时，栈顶部的元素被抛出。当 bar 执行返回时，栈被清空。</p>
+<h3 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h3><p>对象被分配在一个用于表示一个泛广的非结构化内存区域的堆中。</p>
+<h3 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h3><p>JavaScript 在运行时会产生一个由一系列等待被处理的消息组成的消息队列。每个消息都与一个方法相关联。当栈有足够容量时，一条消息会被拿出队列并被处理。这处理的过程包含调用关联方法（因此会生成一个初始化帧栈）。当栈被重新执行清空后，消息处理结束。</p>
+<h2 id="事件循环"><a href="#事件循环" class="headerlink" title="事件循环"></a>事件循环</h2><p>事件循环之所以得到这么个名字是因为它通常的实现如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span> (queue.waitForMessage()) &#123;</div><div class="line">  queue.processNextMessage();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>queue.waitForMessage</code> 同步的等待消息到来，如果当前还没有的话。</p>
+<h3 id="从运行到完成"><a href="#从运行到完成" class="headerlink" title="从运行到完成"></a>从运行到完成</h3><p>每一条消息都在另一条消息被处理前完成。这提供了一些不错的特性在对你的程序追责时，它记录了函数运行的状态，函数执行时总会在其他代码捷足先登前完全的被执行，（并可以修改函数操作时的数据）。与 C 不同的是，比如（以下为 C 的情况）， 如果一个方法在一个线程上跑的时候，它可以在任何时候被中断，并且在另一个线程上跑一些其它的代码。</p>
+<p>这种模式的缺点是，如果一条消息花费了很长的时间去完成，那么web应用将无法处理用户的交互，比如点击和滚动。浏览器通过一个“一个脚本执行了太长时间”的弹窗来缓解问题。   一个好的做法是将消息变短，如果可能的话，将消息切割成一系列短的消息。</p>
+<h3 id="添加消息"><a href="#添加消息" class="headerlink" title="添加消息"></a>添加消息</h3><p>在web浏览器中，任何时候有事件触发，通过绑定的消息监听器都会触发消息的添加。如果没有监听器的话，事件就会丢失。所以在一个元素上点击会触发一个点击事件并添加消息，相似的还有其他的事件。</p>
+<p>调用<code>setTimeout</code>会在参数所给的时间后，将消息添加至队列内。如果此时队列内没有其他的消息了，那么这条消息将会被马上执行。然而，如果有其他消息，这个定时消息则不得不等到其他消息都处理完后才被处理。由于这个原因，函数的第二个参数所指定的时间是最快时间而不是确定的时间。</p>
+<h3 id="0延时"><a href="#0延时" class="headerlink" title="0延时"></a>0延时</h3><p>0延时并不意味着回调会在0毫秒后被调用。调用<code>setTimeout</code>函数并设置 0 毫秒的延时并不是在指定时间后执行。这个执行取决于当前队列内有多少正在等待的任务。在下方的例子中，“this is just a message”会在回调函数中的那条消息前辈打印出来，因为这个延时是最小时间而不会确定时间。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line"></div><div class="line">  <span class="built_in">console</span>.log(<span class="string">'this is the start'</span>);</div><div class="line"></div><div class="line">  setTimeout(<span class="function"><span class="keyword">function</span> <span class="title">cb</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'this is a msg from call back'</span>);</div><div class="line">  &#125;);</div><div class="line"></div><div class="line">  <span class="built_in">console</span>.log(<span class="string">'this is just a message'</span>);</div><div class="line"></div><div class="line">  setTimeout(<span class="function"><span class="keyword">function</span> <span class="title">cb1</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">'this is a msg from call back1'</span>);</div><div class="line">  &#125;, <span class="number">0</span>);</div><div class="line"></div><div class="line">  <span class="built_in">console</span>.log(<span class="string">'this is the end'</span>);</div><div class="line"></div><div class="line">&#125;)();</div><div class="line"></div><div class="line"><span class="comment">// "this is the start"</span></div><div class="line"><span class="comment">// "this is just a message"</span></div><div class="line"><span class="comment">// "this is the end"</span></div><div class="line"><span class="comment">// "this is a msg from call back"</span></div><div class="line"><span class="comment">// "this is a msg from call back1"</span></div></pre></td></tr></table></figure>
+<h3 id="运行时的协作通信"><a href="#运行时的协作通信" class="headerlink" title="运行时的协作通信"></a>运行时的协作通信</h3><p>一个 web worker 或一个跨源的帧含有他自己的栈，堆还有消息队列。两个不同线程在运行时可以通过postMessage 方法来进行通信。如果后者监听消息事件，此方法会向前者（队列内）添加消息。</p>
+<h2 id="永不阻塞"><a href="#永不阻塞" class="headerlink" title="永不阻塞"></a>永不阻塞</h2><p>事件循环模型的一个非常有趣的属性是，JavaScript（的时间循环模型），不像许多其他语言，永远不会阻塞。处理I / O通常通过事件和回调来执行，因此当应用程序正在等待 IndexedDB 查询返回或 XHR 请求返回时，它仍然可以处理其他事情，如用户输入。</p>
+<p>一些遗留的异常情况，如使用 alert 或同步 XHR时 ，但它们被认为是避免交互终端的良好做法。注意，异常的异常确实存在（但通常是出现错误，而不是其他任何东西）。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+          
+            <a href="/tags/translation/" rel="tag"># translation</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/12/04/A deep dive into react perf debugging (part 2)/" rel="next" title="【翻译】深入 React Pref 调试 (PART2)">
+                <i class="fa fa-chevron-left"></i> 【翻译】深入 React Pref 调试 (PART2)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/02/13/React Fiber Architecture/" rel="prev" title="【翻译】React Fiber架构">
+                【翻译】React Fiber架构 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars3.githubusercontent.com/u/8102750?v=3&s=460"
+               alt="张煜航" />
+          <p class="site-author-name" itemprop="name">张煜航</p>
+          <p class="site-description motion-element" itemprop="description">Do you best, and God will do the lest.</p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#运行时的概念"><span class="nav-number">1.</span> <span class="nav-text">运行时的概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#视觉展示"><span class="nav-number">1.1.</span> <span class="nav-text">视觉展示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#栈"><span class="nav-number">1.2.</span> <span class="nav-text">栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#堆"><span class="nav-number">1.3.</span> <span class="nav-text">堆</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#队列"><span class="nav-number">1.4.</span> <span class="nav-text">队列</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事件循环"><span class="nav-number">2.</span> <span class="nav-text">事件循环</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#从运行到完成"><span class="nav-number">2.1.</span> <span class="nav-text">从运行到完成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加消息"><span class="nav-number">2.2.</span> <span class="nav-text">添加消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0延时"><span class="nav-number">2.3.</span> <span class="nav-text">0延时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行时的协作通信"><span class="nav-number">2.4.</span> <span class="nav-text">运行时的协作通信</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#永不阻塞"><span class="nav-number">3.</span> <span class="nav-text">永不阻塞</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张煜航</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'garannodou';
+      var disqus_identifier = '2017/01/31/Concurrency model and Event loop/';
+
+      var disqus_title = "【翻译】并发模型和事件循环";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/lib/algolia-instant-search/instantsearch.min.css">
+
+  
+  
+  <script src="/lib/algolia-instant-search/instantsearch.min.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=5.1.0"></script>
+
+
+
+</body>
+</html>

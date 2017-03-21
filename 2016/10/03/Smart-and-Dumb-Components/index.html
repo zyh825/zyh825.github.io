@@ -1,0 +1,795 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="JavaScript,translation," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="作者：Dan Abramov链接：https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0
+当我在写react应用时有一种很简单却非常使用的模式。如果你已经写过一段实践的react，那么可能你已经发现了它。这篇文章 将这种模式解释的很好，不过我希望加入一些额外的要点。
+你会发现当你把你的组件拆分成两类时，它们会变得">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【翻译】展示组件和容器组件">
+<meta property="og:url" content="http://yoursite.com/2016/10/03/Smart-and-Dumb-Components/index.html">
+<meta property="og:site_name" content="Veda">
+<meta property="og:description" content="作者：Dan Abramov链接：https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0
+当我在写react应用时有一种很简单却非常使用的模式。如果你已经写过一段实践的react，那么可能你已经发现了它。这篇文章 将这种模式解释的很好，不过我希望加入一些额外的要点。
+你会发现当你把你的组件拆分成两类时，它们会变得">
+<meta property="og:updated_time" content="2017-03-21T15:41:48.954Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【翻译】展示组件和容器组件">
+<meta name="twitter:description" content="作者：Dan Abramov链接：https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0
+当我在写react应用时有一种很简单却非常使用的模式。如果你已经写过一段实践的react，那么可能你已经发现了它。这篇文章 将这种模式解释的很好，不过我希望加入一些额外的要点。
+你会发现当你把你的组件拆分成两类时，它们会变得">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '45UGH4CJ52',
+      apiKey: 'c88fb708849de8d55c0523c1f9addc08',
+      indexName: 'garannodou',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/10/03/Smart-and-Dumb-Components/"/>
+
+
+
+
+
+  <title> 【翻译】展示组件和容器组件 | Veda </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Veda</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <p class="site-subtitle">A collection of my tranlation and a few of mind。</p>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/10/03/Smart-and-Dumb-Components/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="张煜航">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/8102750?v=3&s=460">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Veda">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Veda" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                【翻译】展示组件和容器组件
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-10-03T12:21:33+08:00">
+                2016-10-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2016/10/03/Smart-and-Dumb-Components/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/10/03/Smart-and-Dumb-Components/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>作者：Dan Abramov<br>链接：<a href="https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0" target="_blank" rel="external">https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0</a></p>
+<p>当我在写react应用时有一种很简单却非常使用的模式。如果你已经写过一段实践的react，那么可能你已经发现了它。<a href="https://medium.com/@learnreact/container-components-c0e67432e005#.hr23xqjul" target="_blank" rel="external">这篇文章</a> 将这种模式解释的很好，不过我希望加入一些额外的要点。</p>
+<p>你会发现当你把你的组件拆分成两类时，它们会变得更加易于复用和理解。我称呼他们为容器组件和展示组件，不过我同样也听到如下几种说法，胖组件(Fat)和瘦(Shinny)组件，聪明组件(Smart)和呆（Dumb）组件，多状态（Statefull）组件和纯(Pure)组件，放映和组件（Screens and Components）。它们不尽相同，但核心的思想却非常接近。</p>
+<p>我所谓的展示组件：</p>
+<ul>
+<li>考虑组件长啥样。</li>
+<li>可能会同时包含展示组件和容器组件在其中，而且通常会含有写DOM标签和私有样式。</li>
+<li>通常用this.props.children来包其他组件。</li>
+<li>不依赖于应用内的其他部分，比如Flux的动作和存储。</li>
+<li>不会定义数据是如何被加载或改变的。</li>
+<li>仅通过props来获取数据和回调函数。</li>
+<li>很少包含私有的状态(如果有的话，也只会是UI的状态而不是应用的数据)</li>
+<li>一般用<a href="https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html#stateless-functional-components" target="_blank" rel="external">方法组件</a> 的写法来写，除非它们需要状态，或者控制生命周期，或者优化性能。</li>
+<li>举例： <em>Page, Siderbar, Strory, UserInfo, List</em></li>
+</ul>
+<p>我所谓的容器组件：</p>
+<ul>
+<li>考虑组件是如何运作的。</li>
+<li>可能会同时包含展示组件和容器组件在其中，出了部分包裹用的div不会拥有任何DOM标签，更绝不会有任何样式。</li>
+<li>给展示组件或其他容器组件提供数据和动作。</li>
+<li>调用flux动作，并为展示组件提供回调函数</li>
+<li>通常会有很多状态，而且通常是应用服务的数据。</li>
+<li>通常通过<a href="https://medium.com/@dan_abramov/mixins-are-dead-long-live-higher-order-components-94a0d2f9e750#.tghakfcnl" target="_blank" rel="external">高阶组件</a> 来生成，比如React Redux的connect()组件， Relay的createContainer()，Flux Utils的Container.create()，而不是手工的去写。</li>
+<li>举例：<em>UserPage, FollowersSidebar, StoryContainer, FollowedUserList.</em></li>
+</ul>
+<p>我将它们放在不同的文件夹下，从而使它们的作用更加明确。</p>
+<h3 id="这种做法的好处"><a href="#这种做法的好处" class="headerlink" title="这种做法的好处"></a>这种做法的好处</h3><ul>
+<li>将专注的点分离，通过这种方式，你可以更好的理解你的应用和你的UI。</li>
+<li>更好的复用。你可以使用相同的展示组件通过不同的状态源，也可以封装成容器组件，在未来复用它。</li>
+<li>展示组件本质上是你的应用的“调色板”。你可以将他们放到一个单独的页面内，并且让设计师随意的来调整它们的样式，而不会碰触来应用的逻辑部分。你可以在哪个页面内进行screenshot regression测试。</li>
+<li>这会强迫你去解析“布局组件”，比如Sidebar,Page,ContextMeanu 并且使用this.props.children来传递，而不是粘贴复制那块的jsx。</li>
+</ul>
+<p>记住，组件不一定要生成DOM，它们只需要提供UI上的组合关系和界限。</p>
+<h3 id="什么时候去进去容器？"><a href="#什么时候去进去容器？" class="headerlink" title="什么时候去进去容器？"></a>什么时候去进去容器？</h3><p>我建议你在构建你的应用时，先写展示组件的部分。最后，你会发现，你在中间组件中传递了太多的props。当你注意到部分组件并不需要它所接受的prop，而只是传递给它们的子组件，而当子组件需要更多数据，你不得不如重写所有这些中间组件，这时就是引入容器的最佳时机。这样做，你可以将数据和一些动作的props给余下的组件，而不必去在组件树中负担一些无关的组件。</p>
+<p>这是一种循序渐进的不断重构的过程，所以没必要在一开始就做到位。当你不断地实现这种模式时，记得只要像你知道何时去增加新的方法一样来增加新的组件就可以了。我的免费的redux教程系列也许会对你有帮助。</p>
+<h3 id="其他的二分性"><a href="#其他的二分性" class="headerlink" title="其他的二分性"></a>其他的二分性</h3><p>有很重要的一点你必须知道，容器组件和展示组件的区别并不是技术上的差别，而是两者在目的上的区别。为了比较，我再列举了一些有联系的（但是是不同的！）二分性。</p>
+<ul>
+<li>多状体和无状态。一部分组件使用了React.setState()方法，而另一部分则没有。容器组件有很多状态，展示组件状态很少，没错，但这并不是一套铁规则。展示组件也可以有很多状态，同理，容器组件的状态也可以很少。</li>
+<li>类和函数。从React0.14版本开始，组件可以用类和函数两种方式来生命了。函数组件更容易声明，不过它们缺少了一些只属于类的特性。这些限制或许再未来会消失，但至少现在是存在的。因为函数组件更易于理解，所以我建议你使用它们，除非你需要状态，再生命周期上添加处理，或是需要优化性能，这种时候只能使用类声明的组件了。</li>
+<li>纯的和不纯的。人们说一个组件是纯的，给它相同的props和state时，返回的结果一定时相同的。纯组件可以被定义为类和函数，同时既可以时充满状态的也可以使无状态的。纯组件的另一个重要的部分是，春组件并不会因为所谓的props和state产生一些深层的改变，所以可以通过在shouldComponentUpdate函数内浅比较state和props来优化性能。目前只有类组件可以声明shouldComponentUpdate方法，不过在未来这可能会改变。</li>
+</ul>
+<p>展示组件和容器组件都有上述的特性。在我的经验来看，展示组件倾向于无状态的纯函数，而容器组件情况于多状态的纯类。当然了，这只是我的经验之谈，而不是铁则，我也见过一些完全相反的情况。不要将展示组件和容器组件当作教条。有些时候，划清这条线并不是必要，而且有时很难分清。如果你感到不确定一个组件是展示组件还是容器组件时，不要太纠结，可能时候未到。</p>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p>Michael Chan的这篇梗概中讨论了这个。</p>
+<h3 id="衍生阅读"><a href="#衍生阅读" class="headerlink" title="衍生阅读"></a>衍生阅读</h3><ul>
+<li><a href="https://egghead.io/series/getting-started-with-redux" target="_blank" rel="external">Getting Started with Redux</a></li>
+</ul>
+<ul>
+<li><a href="https://medium.com/@dan_abramov/mixins-are-dead-long-live-higher-order-components-94a0d2f9e750" target="_blank" rel="external">Mixins are Dead, Long Live Composition</a></li>
+</ul>
+<ul>
+<li><a href="https://medium.com/@learnreact/container-components-c0e67432e005" target="_blank" rel="external">Container Components</a></li>
+</ul>
+<ul>
+<li><a href="http://bradfrost.com/blog/post/atomic-web-design/" target="_blank" rel="external">Atomic Web Design</a></li>
+</ul>
+<ul>
+<li><a href="http://facebook.github.io/react/blog/2015/03/19/building-the-facebook-news-feed-with-relay.html" target="_blank" rel="external">Building the Facebook News Feed with Relay</a></li>
+</ul>
+<h3 id="脚注"><a href="#脚注" class="headerlink" title="脚注"></a>脚注</h3><p>在这篇文章的早些版本中我们称之为聪明组件和呆组件，不过这对展示组件来说有些讲的太过分了，而且这并不能很好的解释两者的意图。我很喜欢这对新的叫法，希望你也是。</p>
+<p>在这篇文章的早些版本中我声称展示组件只能包含其他的展示组件。如今我不太认为这时对的。一个组件时展示组件还是容器组件应该由他的内部细节决定。你应该能够用通过容器组件来替换掉一个展示组件同时不修改任何调用的地方。因此，展示组件和容器组件都可以包含其他展示组件和容器组件，这是没问题的。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+          
+            <a href="/tags/translation/" rel="tag"># translation</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/12/04/A deep dive into react perf debugging (part 2)/" rel="prev" title="【翻译】深入 React Pref 调试 (PART2)">
+                【翻译】深入 React Pref 调试 (PART2) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars3.githubusercontent.com/u/8102750?v=3&s=460"
+               alt="张煜航" />
+          <p class="site-author-name" itemprop="name">张煜航</p>
+          <p class="site-description motion-element" itemprop="description">Do you best, and God will do the lest.</p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#这种做法的好处"><span class="nav-number">1.</span> <span class="nav-text">这种做法的好处</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#什么时候去进去容器？"><span class="nav-number">2.</span> <span class="nav-text">什么时候去进去容器？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他的二分性"><span class="nav-number">3.</span> <span class="nav-text">其他的二分性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#例子"><span class="nav-number">4.</span> <span class="nav-text">例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#衍生阅读"><span class="nav-number">5.</span> <span class="nav-text">衍生阅读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#脚注"><span class="nav-number">6.</span> <span class="nav-text">脚注</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张煜航</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'garannodou';
+      var disqus_identifier = '2016/10/03/Smart-and-Dumb-Components/';
+
+      var disqus_title = "【翻译】展示组件和容器组件";
+
+
+      function run_disqus_script(disqus_script) {
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/lib/algolia-instant-search/instantsearch.min.css">
+
+  
+  
+  <script src="/lib/algolia-instant-search/instantsearch.min.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=5.1.0"></script>
+
+
+
+</body>
+</html>
