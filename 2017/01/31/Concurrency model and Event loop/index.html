@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"45UGH4CJ52","apiKey":"c88fb708849de8d55c0523c1f9addc08","indexName":"garannodou","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="原址：https:&#x2F;&#x2F;developer.mozilla.org&#x2F;en-US&#x2F;docs&#x2F;Web&#x2F;JavaScript&#x2F;EventLoop  JavaScript 有一个基于“事件循环”的并发模型。这个模型和其他语言中（C 和 JAVA）中的近似模型有着很大区别。 运行时的概念下面的内容描述了一个理论模型。现在 JavaScript 引擎大量的声明和优化了上述语义。 视觉展示 栈函数的调用形成有一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【翻译】并发模型和事件循环">
+<meta property="og:url" content="http://yoursite.com/2017/01/31/Concurrency%20model%20and%20Event%20loop/index.html">
+<meta property="og:site_name" content="Veda">
+<meta property="og:description" content="原址：https:&#x2F;&#x2F;developer.mozilla.org&#x2F;en-US&#x2F;docs&#x2F;Web&#x2F;JavaScript&#x2F;EventLoop  JavaScript 有一个基于“事件循环”的并发模型。这个模型和其他语言中（C 和 JAVA）中的近似模型有着很大区别。 运行时的概念下面的内容描述了一个理论模型。现在 JavaScript 引擎大量的声明和优化了上述语义。 视觉展示 栈函数的调用形成有一">
+<meta property="og:locale">
+<meta property="og:image" content="https://developer.mozilla.org/files/4617/default.svg">
+<meta property="article:published_time" content="2017-01-31T04:21:33.000Z">
+<meta property="article:modified_time" content="2023-02-01T20:30:17.657Z">
+<meta property="article:author" content="张煜航">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="translation">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://developer.mozilla.org/files/4617/default.svg">
+
+<link rel="canonical" href="http://yoursite.com/2017/01/31/Concurrency%20model%20and%20Event%20loop/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>【翻译】并发模型和事件循环 | Veda</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Veda</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A collection of my tranlation and a few of mind。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/31/Concurrency%20model%20and%20Event%20loop/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张煜航">
+      <meta itemprop="description" content="Do you best, and God will do the lest.">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Veda">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【翻译】并发模型和事件循环
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-01-31 12:21:33" itemprop="dateCreated datePublished" datetime="2017-01-31T12:21:33+08:00">2017-01-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-02-02 04:30:17" itemprop="dateModified" datetime="2023-02-02T04:30:17+08:00">2023-02-02</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>原址：<a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop">https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop</a></p>
+</blockquote>
+<p>JavaScript 有一个基于“事件循环”的并发模型。这个模型和其他语言中（C 和 JAVA）中的近似模型有着很大区别。</p>
+<h2 id="运行时的概念"><a href="#运行时的概念" class="headerlink" title="运行时的概念"></a>运行时的概念</h2><p>下面的内容描述了一个理论模型。现在 JavaScript 引擎大量的声明和优化了上述语义。</p>
+<h3 id="视觉展示"><a href="#视觉展示" class="headerlink" title="视觉展示"></a>视觉展示</h3><p><img src="https://developer.mozilla.org/files/4617/default.svg" alt="Stack, heap, queue"></p>
+<h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p>函数的调用形成有一系列帧组成的栈。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">foo</span>(<span class="params">b</span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">10</span>;</span><br><span class="line">  <span class="keyword">return</span> a + b + <span class="number">11</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">bar</span>(<span class="params">x</span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> y = <span class="number">3</span>;</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">foo</span>(x * y);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title function_">bar</span>(<span class="number">7</span>));</span><br></pre></td></tr></table></figure>
+
+<p>当调用 bar 时，第一帧被产生用以保存 bar 函数的引用参数和局部变量。当 bar 调用 foo 时，第二帧被生成用以保存 foo 的引用参数和局部变量并入栈。当 foo 返回时，栈顶部的元素被抛出。当 bar 执行返回时，栈被清空。</p>
+<h3 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h3><p>对象被分配在一个用于表示一个泛广的非结构化内存区域的堆中。</p>
+<h3 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h3><p>JavaScript 在运行时会产生一个由一系列等待被处理的消息组成的消息队列。每个消息都与一个方法相关联。当栈有足够容量时，一条消息会被拿出队列并被处理。这处理的过程包含调用关联方法（因此会生成一个初始化帧栈）。当栈被重新执行清空后，消息处理结束。</p>
+<h2 id="事件循环"><a href="#事件循环" class="headerlink" title="事件循环"></a>事件循环</h2><p>事件循环之所以得到这么个名字是因为它通常的实现如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (queue.<span class="title function_">waitForMessage</span>()) &#123;</span><br><span class="line">  queue.<span class="title function_">processNextMessage</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>queue.waitForMessage</code> 同步的等待消息到来，如果当前还没有的话。</p>
+<h3 id="从运行到完成"><a href="#从运行到完成" class="headerlink" title="从运行到完成"></a>从运行到完成</h3><p>每一条消息都在另一条消息被处理前完成。这提供了一些不错的特性在对你的程序追责时，它记录了函数运行的状态，函数执行时总会在其他代码捷足先登前完全的被执行，（并可以修改函数操作时的数据）。与 C 不同的是，比如（以下为 C 的情况）， 如果一个方法在一个线程上跑的时候，它可以在任何时候被中断，并且在另一个线程上跑一些其它的代码。</p>
+<p>这种模式的缺点是，如果一条消息花费了很长的时间去完成，那么web应用将无法处理用户的交互，比如点击和滚动。浏览器通过一个“一个脚本执行了太长时间”的弹窗来缓解问题。   一个好的做法是将消息变短，如果可能的话，将消息切割成一系列短的消息。</p>
+<h3 id="添加消息"><a href="#添加消息" class="headerlink" title="添加消息"></a>添加消息</h3><p>在web浏览器中，任何时候有事件触发，通过绑定的消息监听器都会触发消息的添加。如果没有监听器的话，事件就会丢失。所以在一个元素上点击会触发一个点击事件并添加消息，相似的还有其他的事件。</p>
+<p>调用<code>setTimeout</code>会在参数所给的时间后，将消息添加至队列内。如果此时队列内没有其他的消息了，那么这条消息将会被马上执行。然而，如果有其他消息，这个定时消息则不得不等到其他消息都处理完后才被处理。由于这个原因，函数的第二个参数所指定的时间是最快时间而不是确定的时间。</p>
+<h3 id="0延时"><a href="#0延时" class="headerlink" title="0延时"></a>0延时</h3><p>0延时并不意味着回调会在0毫秒后被调用。调用<code>setTimeout</code>函数并设置 0 毫秒的延时并不是在指定时间后执行。这个执行取决于当前队列内有多少正在等待的任务。在下方的例子中，“this is just a message”会在回调函数中的那条消息前辈打印出来，因为这个延时是最小时间而不会确定时间。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;this is the start&#x27;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="keyword">function</span> <span class="title function_">cb</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;this is a msg from call back&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;this is just a message&#x27;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="keyword">function</span> <span class="title function_">cb1</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;this is a msg from call back1&#x27;</span>);</span><br><span class="line">  &#125;, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;this is the end&#x27;</span>);</span><br><span class="line"></span><br><span class="line">&#125;)();</span><br><span class="line"></span><br><span class="line"><span class="comment">// &quot;this is the start&quot;</span></span><br><span class="line"><span class="comment">// &quot;this is just a message&quot;</span></span><br><span class="line"><span class="comment">// &quot;this is the end&quot;</span></span><br><span class="line"><span class="comment">// &quot;this is a msg from call back&quot;</span></span><br><span class="line"><span class="comment">// &quot;this is a msg from call back1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="运行时的协作通信"><a href="#运行时的协作通信" class="headerlink" title="运行时的协作通信"></a>运行时的协作通信</h3><p>一个 web worker 或一个跨源的帧含有他自己的栈，堆还有消息队列。两个不同线程在运行时可以通过postMessage 方法来进行通信。如果后者监听消息事件，此方法会向前者（队列内）添加消息。</p>
+<h2 id="永不阻塞"><a href="#永不阻塞" class="headerlink" title="永不阻塞"></a>永不阻塞</h2><p>事件循环模型的一个非常有趣的属性是，JavaScript（的时间循环模型），不像许多其他语言，永远不会阻塞。处理I &#x2F; O通常通过事件和回调来执行，因此当应用程序正在等待 IndexedDB 查询返回或 XHR 请求返回时，它仍然可以处理其他事情，如用户输入。</p>
+<p>一些遗留的异常情况，如使用 alert 或同步 XHR时 ，但它们被认为是避免交互终端的良好做法。注意，异常的异常确实存在（但通常是出现错误，而不是其他任何东西）。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+              <a href="/tags/translation/" rel="tag"># translation</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/12/04/A%20deep%20dive%20into%20react%20perf%20debugging%20(part%202)/" rel="prev" title="【翻译】深入 React Pref 调试 (PART2)">
+      <i class="fa fa-chevron-left"></i> 【翻译】深入 React Pref 调试 (PART2)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/02/13/React%20Fiber%20Architecture/" rel="next" title="【翻译】React Fiber架构">
+      【翻译】React Fiber架构 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">运行时的概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%86%E8%A7%89%E5%B1%95%E7%A4%BA"><span class="nav-number">1.1.</span> <span class="nav-text">视觉展示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%88"><span class="nav-number">1.2.</span> <span class="nav-text">栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A0%86"><span class="nav-number">1.3.</span> <span class="nav-text">堆</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%9F%E5%88%97"><span class="nav-number">1.4.</span> <span class="nav-text">队列</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF"><span class="nav-number">2.</span> <span class="nav-text">事件循环</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E8%BF%90%E8%A1%8C%E5%88%B0%E5%AE%8C%E6%88%90"><span class="nav-number">2.1.</span> <span class="nav-text">从运行到完成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E6%B6%88%E6%81%AF"><span class="nav-number">2.2.</span> <span class="nav-text">添加消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0%E5%BB%B6%E6%97%B6"><span class="nav-number">2.3.</span> <span class="nav-text">0延时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E7%9A%84%E5%8D%8F%E4%BD%9C%E9%80%9A%E4%BF%A1"><span class="nav-number">2.4.</span> <span class="nav-text">运行时的协作通信</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B0%B8%E4%B8%8D%E9%98%BB%E5%A1%9E"><span class="nav-number">3.</span> <span class="nav-text">永不阻塞</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张煜航</p>
+  <div class="site-description" itemprop="description">Do you best, and God will do the lest.</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张煜航</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

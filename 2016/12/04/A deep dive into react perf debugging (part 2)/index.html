@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"45UGH4CJ52","apiKey":"c88fb708849de8d55c0523c1f9addc08","indexName":"garannodou","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="这是 React 的性能优化的第二部分。在第一部分中，我们简单的了解了怎么去使用 React 的 Perf 调试工具，常规的 React 的渲染瓶颈，和一些调试的小技巧。如果您还没准备好（继续深入）的话，那最好先去把它（Part 1） 看了 在第二部分中，我们会继续深入react调试的工作流 - 既然已经给了这些个想法，那又会如何在练习中体现呢？（自问自答）我们将会通过一些切合时机的例子，并且使用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【翻译】深入 React Pref 调试 (PART2)">
+<meta property="og:url" content="http://yoursite.com/2016/12/04/A%20deep%20dive%20into%20react%20perf%20debugging%20(part%202)/index.html">
+<meta property="og:site_name" content="Veda">
+<meta property="og:description" content="这是 React 的性能优化的第二部分。在第一部分中，我们简单的了解了怎么去使用 React 的 Perf 调试工具，常规的 React 的渲染瓶颈，和一些调试的小技巧。如果您还没准备好（继续深入）的话，那最好先去把它（Part 1） 看了 在第二部分中，我们会继续深入react调试的工作流 - 既然已经给了这些个想法，那又会如何在练习中体现呢？（自问自答）我们将会通过一些切合时机的例子，并且使用">
+<meta property="og:locale">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/0.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/IipbV.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/2.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/3.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/4.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/hSPOL.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/6.png">
+<meta property="og:image" content="http://benchling.engineering/content/images/2016/02/7.png">
+<meta property="article:published_time" content="2016-12-04T04:21:33.000Z">
+<meta property="article:modified_time" content="2023-02-01T20:30:17.657Z">
+<meta property="article:author" content="张煜航">
+<meta property="article:tag" content="react">
+<meta property="article:tag" content="debug">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://benchling.engineering/content/images/2016/02/0.png">
+
+<link rel="canonical" href="http://yoursite.com/2016/12/04/A%20deep%20dive%20into%20react%20perf%20debugging%20(part%202)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>【翻译】深入 React Pref 调试 (PART2) | Veda</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Veda</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A collection of my tranlation and a few of mind。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/04/A%20deep%20dive%20into%20react%20perf%20debugging%20(part%202)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张煜航">
+      <meta itemprop="description" content="Do you best, and God will do the lest.">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Veda">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【翻译】深入 React Pref 调试 (PART2)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2016-12-04 12:21:33" itemprop="dateCreated datePublished" datetime="2016-12-04T12:21:33+08:00">2016-12-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-02-02 04:30:17" itemprop="dateModified" datetime="2023-02-02T04:30:17+08:00">2023-02-02</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>这是 React 的性能优化的第二部分。在第一部分中，我们简单的了解了怎么去使用 React 的 Perf 调试工具，常规的 React 的渲染瓶颈，和一些调试的小技巧。如果您还没准备好（继续深入）的话，那最好先去把它（Part 1） 看了</p>
+<p>在第二部分中，我们会继续深入react调试的工作流 - 既然已经给了这些个想法，那又会如何在练习中体现呢？（自问自答）我们将会通过一些切合时机的例子，并且使用chrome的开发工具来分析和解决性能问题。（如果您在看完后有任何建议和新的想法，请让我们知道！）</p>
+<p>我们将会参考下面这段简单的代码 - 你可以看出它通过 React 渲染了一个简单的 todo list。在后面的 JS fiddle 代码片段中，你可以点击 “Result” 来看一个带交互的实际例子，complete with performance repros（不知道怎么翻译）。我们将会这过程中提交并更新 JS fiddles。</p>
+<h2 id="CASE-STUDY-1-TODOLIST"><a href="#CASE-STUDY-1-TODOLIST" class="headerlink" title="CASE STUDY #1: TODOLIST"></a>CASE STUDY #1: TODOLIST</h2><p>让我们开始上面的 <code>TodoList</code> 。通过尝试在代码未优化的例子中，快速的输入，你会发现它有多慢。</p>
+<p>让我们开始用<em>Chrome</em> 开发工具中的 <em>Timeline profiler</em> ，通过一些细节的切面的来看浏览器在做了些什么： 处理用户触发的事件，运行JS，渲染和绘制。在输入框内输入一个字符，然后停止 <em>Timeline profiler</em> 。这个过程中你不会感到明显的缓慢，因为我们只输入了一个字符，这是产生用以分析的少量信息的最快的手段。</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/0.png" alt="img"></p>
+<p>注意图中 <code>Event(textInput)</code> 进度条在 <code>Scripting(Children)</code> 中总计花费了121.10 ms 。这个时段切面中表明了这个缓慢问题是一个脚本的问题，而不是样式或重复计算导致的性能问题。</p>
+<p>所以让我们深入脚本。切换到 <em>Profiles tab</em> - <em>Timeline</em> 不仅给了我们浏览器（和 <em>JS Profile</em>）的一个概况，通过这些个代码运行切面则让我们得以继续深入 JS 的内部实现，而且给了我们各种各样可视化工具。根据另一份Profile， 它中指出运行缓慢的问题并不在于我们的应用代码：</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/IipbV.png" alt="img"></p>
+<p>将 Profile 的 <code>Heavy（Bottom up）</code> 按 <code>Total</code> 字段降序排列，结果指出消耗时间最多的部分是React <code>batchUpdates</code>方法的调用，这很明确的提示了问题出在 React 上。相反，通过 <code>Self</code> 来测量函数中除去子函数的花费的时间 - 根据  <code>Self</code> 排序来查看是否有明显的昂贵（花费时间多）的函数时，这并没有明显的性能瓶颈在应用层面的函数中，所以让我们换 React 的 Pref 来看看。</p>
+<p>为了声称一个针对缓慢操作的的评估切面，在console中，我们调用 <code>React.addons.Perf.start()</code>， 然后通过输入一个字符来重现缓慢的操作，然后输入<code>React.addons.Perf.stop()</code>结束监控。(最后) 通过输入 <code>React.addons.Perf.printWasted()</code>我们可以看到应用在不必要的渲染中花费的时间：</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/2.png" alt="img"></p>
+<p>这第一项表明<code>TodoItem</code>是由<code>Todos</code>渲染的，而（输入）<code>Perf.printWated()</code>可以看出，如果我们避免render树的反复构建，我们就可以省下100ms。 这看起来像是我们优化中最主要的部分。</p>
+<p>为了分析为什么TodoItem会浪费这么多时间，我们创建一个自定义的输入函数，以很明确的 <code>WhyDidYouUpdateMinxin</code>来命名它，它会嵌入组件并且打印一些信息，如触发了哪些更新和为什么更新。下面是代码；按你的需求随意使用它</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* eslint-disable no-console */</span></span><br><span class="line"><span class="keyword">import</span> _ <span class="keyword">from</span> <span class="string">&#x27;underscore&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Drop this mixin into a component that wastes time according to Perf.getWastedTime() to find</span></span><br><span class="line"><span class="comment">out what state/props should be preserved. Once it says &quot;Update avoidable!&quot; for &#123;state, props&#125;,</span></span><br><span class="line"><span class="comment">you should be able to drop in React.addons.PureRenderMixin</span></span><br><span class="line"><span class="comment">React.createClass &#123;</span></span><br><span class="line"><span class="comment">  mixins: [WhyDidYouUpdateMixin]</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">isRequiredUpdateObject</span>(<span class="params">o</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">Array</span>.<span class="title function_">isArray</span>(o) || (o &amp;&amp; o.<span class="property">constructor</span> === <span class="title class_">Object</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">constructor</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">deepDiff</span>(<span class="params">o1, o2, p</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="title function_">notify</span> = (<span class="params">status</span>) =&gt; &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">warn</span>(<span class="string">&#x27;Update %s&#x27;</span>, status);</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;%cbefore&#x27;</span>, <span class="string">&#x27;font-weight: bold&#x27;</span>, o1);</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;%cafter &#x27;</span>, <span class="string">&#x27;font-weight: bold&#x27;</span>, o2);</span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="keyword">if</span> (!_.<span class="title function_">isEqual</span>(o1, o2)) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">group</span>(p);</span><br><span class="line">    <span class="keyword">if</span> ([o1, o2].<span class="title function_">every</span>(_.<span class="property">isFunction</span>)) &#123;</span><br><span class="line">      <span class="title function_">notify</span>(<span class="string">&#x27;avoidable?&#x27;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (![o1, o2].<span class="title function_">every</span>(isRequiredUpdateObject)) &#123;</span><br><span class="line">      <span class="title function_">notify</span>(<span class="string">&#x27;required.&#x27;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> keys = _.<span class="title function_">union</span>(_.<span class="title function_">keys</span>(o1), _.<span class="title function_">keys</span>(o2));</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">const</span> key <span class="keyword">of</span> keys) &#123;</span><br><span class="line">        <span class="title function_">deepDiff</span>(o1[key], o2[key], key);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">groupEnd</span>();</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (o1 !== o2) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">group</span>(p);</span><br><span class="line">    <span class="title function_">notify</span>(<span class="string">&#x27;avoidable!&#x27;</span>);</span><br><span class="line">    <span class="keyword">if</span> (_.<span class="title function_">isObject</span>(o1) &amp;&amp; _.<span class="title function_">isObject</span>(o2)) &#123;</span><br><span class="line">      <span class="keyword">const</span> keys = _.<span class="title function_">union</span>(_.<span class="title function_">keys</span>(o1), _.<span class="title function_">keys</span>(o2));</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">const</span> key <span class="keyword">of</span> keys) &#123;</span><br><span class="line">        <span class="title function_">deepDiff</span>(o1[key], o2[key], key);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">groupEnd</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">WhyDidYouUpdateMixin</span> = &#123;</span><br><span class="line">  <span class="title function_">componentDidUpdate</span>(<span class="params">prevProps, prevState</span>) &#123;</span><br><span class="line">    <span class="title function_">deepDiff</span>(&#123;<span class="attr">props</span>: prevProps, <span class="attr">state</span>: prevState&#125;,</span><br><span class="line">             &#123;<span class="attr">props</span>: <span class="variable language_">this</span>.<span class="property">props</span>, <span class="attr">state</span>: <span class="variable language_">this</span>.<span class="property">state</span>&#125;,</span><br><span class="line">             <span class="variable language_">this</span>.<span class="property">constructor</span>.<span class="property">displayName</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">WhyDidYouUpdateMixin</span>;</span><br></pre></td></tr></table></figure>
+
+<p>一旦我们在TodoItem中注入了这个函数，我们可以看到发生了一些什么：</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/3.png" alt="img"></p>
+<p>Aha! 我们看到tags这个变量在操作前后近似 - 这个注入函数告诉我们当两个状态对象深度相等而不是严格相等时，这时（渲染）是可以避免的。换个角度说，这个问题的难点在于如何判断两个方法是相等的，因为 <code>Fucntion.bind</code>声明了一个新的方法，尽管绑定的参数相同。这是一些有用的线索，既然如此 - 我们回过头来看看我们是如何传入<code>tags</code>和<code>deleteItem</code>的，看起来没错我们构建一个<code>TodoItem</code>时我们都传递了一些新的值。</p>
+<p>假如我们用传递未绑定的进入TodoItem, 同时我们将tags储存成常量，我们将可以避免这些个问题：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">diff --git i/example.<span class="property">js</span> w/example.<span class="property">js</span></span><br><span class="line">index ba2427a..2edc85e <span class="number">100644</span></span><br><span class="line">--- i/example.<span class="property">js</span></span><br><span class="line">+++ w/example.<span class="property">js</span></span><br><span class="line">@@ -<span class="number">11</span>,<span class="number">10</span> +<span class="number">11</span>,<span class="number">13</span> @@ <span class="keyword">const</span> <span class="title class_">TodoItem</span> = <span class="title class_">React</span>.<span class="title function_">createClass</span>(&#123;</span><br><span class="line">       <span class="attr">id</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">number</span>.<span class="property">isRequired</span>,</span><br><span class="line">     &#125;).<span class="property">isRequired</span>,</span><br><span class="line">   &#125;,</span><br><span class="line">+  <span class="title function_">deleteItem</span>(<span class="params"></span>) &#123;</span><br><span class="line">+    <span class="variable language_">this</span>.<span class="property">props</span>.<span class="title function_">deleteItem</span>(<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">item</span>.<span class="property">id</span>);</span><br><span class="line">+  &#125;,</span><br><span class="line">   <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">     <span class="keyword">return</span> (</span><br><span class="line">       <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">-        <span class="tag">&lt;<span class="name">button</span> <span class="attr">style</span>=<span class="string">&#123;&#123;width:</span> <span class="attr">30</span>&#125;&#125; <span class="attr">onClick</span>=<span class="string">&#123;this.props.deleteItem&#125;</span>&gt;</span>x<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">+        <span class="tag">&lt;<span class="name">button</span> <span class="attr">style</span>=<span class="string">&#123;&#123;width:</span> <span class="attr">30</span>&#125;&#125; <span class="attr">onClick</span>=<span class="string">&#123;this.deleteItem&#125;</span>&gt;</span>x<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">         <span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;this.props.item.text&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">         &#123;this.props.tags.map((tag) =&gt; &#123;</span></span><br><span class="line"><span class="language-xml">           return <span class="tag">&lt;<span class="name">span</span> <span class="attr">key</span>=<span class="string">&#123;tag&#125;</span> <span class="attr">className</span>=<span class="string">&quot;tag&quot;</span>&gt;</span> &#123;tag&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span>;</span></span><br><span class="line"><span class="language-xml">@@ -26,6 +29,9 @@ const TodoItem = React.createClass(&#123;</span></span><br><span class="line"><span class="language-xml"> </span></span><br><span class="line"><span class="language-xml"> const Todos = React.createClass(&#123;</span></span><br><span class="line"><span class="language-xml">   mixins: [React.addons.LinkedStateMixin],</span></span><br><span class="line"><span class="language-xml">+  statics: &#123;</span></span><br><span class="line"><span class="language-xml">+    tags: [&#x27;important&#x27;, &#x27;starred&#x27;],</span></span><br><span class="line"><span class="language-xml">+  &#125;,</span></span><br><span class="line"><span class="language-xml">   propTypes: &#123;</span></span><br><span class="line"><span class="language-xml">     initialItems: React.PropTypes.arrayOf(React.PropTypes.shape(&#123;</span></span><br><span class="line"><span class="language-xml">       text: React.PropTypes.string.isRequired,</span></span><br><span class="line"><span class="language-xml">@@ -60,8 +66,8 @@ const Todos = React.createClass(&#123;</span></span><br><span class="line"><span class="language-xml">         <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span></span><br><span class="line">         &#123;<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">items</span>.<span class="title function_">map</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> &#123;</span><br><span class="line">           <span class="keyword">return</span> (</span><br><span class="line">-            <span class="language-xml"><span class="tag">&lt;<span class="name">TodoItem</span> <span class="attr">key</span>=<span class="string">&#123;item.id&#125;</span> <span class="attr">item</span>=<span class="string">&#123;item&#125;</span> <span class="attr">tags</span>=<span class="string">&#123;[</span>&#x27;<span class="attr">important</span>&#x27;, &#x27;<span class="attr">starred</span>&#x27;]&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml"><span class="attr">-</span>             <span class="attr">deleteItem</span>=<span class="string">&#123;this.deleteItem.bind(null,</span> <span class="attr">item.id</span>)&#125; /&gt;</span></span></span><br><span class="line">+            <span class="language-xml"><span class="tag">&lt;<span class="name">TodoItem</span> <span class="attr">key</span>=<span class="string">&#123;item.id&#125;</span> <span class="attr">item</span>=<span class="string">&#123;item&#125;</span> <span class="attr">tags</span>=<span class="string">&#123;Todos.tags&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">+             <span class="attr">deleteItem</span>=<span class="string">&#123;this.deleteItem&#125;</span> /&gt;</span></span></span><br><span class="line">            );</span><br><span class="line">         &#125;)&#125;</span><br><span class="line">       &lt;/div&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>WhyDidYouUpdateMixin</code> 现在表明了 prevProps 和 newProps 浅相等。我们可以使用 PureRenderMixin，来避免当props（和state）浅相等时的组件更新。</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/4.png" alt="img"></p>
+<p>当我们重新运行Profiler，我们可以看到只花费了35ms（比原来的快了4倍）</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/hSPOL.png" alt="img"></p>
+<p>这比原来的好了，但是仍然不够理想。在输入框内打字不应该导致这么慢。这表明我们任然没有做到0（list的item数量级别）的工作。我们仅仅定义了常量，我们依然需要对每个item进行浅比较。</p>
+<p>此时，你可以能会认为1000个items在todolist中已经是极端的情况了，而且30ms的延迟，对你的应用而言并不是问题。如果你希望能够支持几千个子元素，那么，这任然没有达到理想的60fps</p>
+<p>（16ms 每帧 - 慢一点点你都会感受的到）。</p>
+<p>将组件拆分成多个组件作为下一步工作是有道理的（同样将之视为第一步也是合理的）。我们观察到Todos这个组件由两个没有交集的子组建构成，一个<code>AddTaskForm</code>组件包含了输入框和按钮，一个<code>TodoItems</code>组件包含了Items的列表。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable constant_">ID</span> = <span class="number">0</span>; <span class="comment">// incrementing counter for todo item ids</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">AddTaskForm</span> = <span class="title class_">React</span>.<span class="title function_">createClass</span>(&#123;</span><br><span class="line">  <span class="attr">mixins</span>: [<span class="title class_">React</span>.<span class="property">addons</span>.<span class="property">LinkedStateMixin</span>, <span class="title class_">React</span>.<span class="property">addons</span>.<span class="property">PureRenderMixin</span>],</span><br><span class="line">  <span class="title function_">getInitialState</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="attr">text</span>: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">addTask</span>(<span class="params">e</span>) &#123;</span><br><span class="line">    e.<span class="title function_">preventDefault</span>();</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">props</span>.<span class="title function_">addTask</span>(<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">text</span>);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;<span class="attr">text</span>: <span class="string">&#x27;&#x27;</span>&#125;);</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">form</span> <span class="attr">onSubmit</span>=<span class="string">&#123;this.addTask&#125;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">valueLink</span>=<span class="string">&#123;this.linkState(</span>&#x27;<span class="attr">text</span>&#x27;)&#125; /&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">button</span>&gt;</span>Add Task<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">TodoItems</span> = <span class="title class_">React</span>.<span class="title function_">createClass</span>(&#123;</span><br><span class="line">  <span class="attr">mixins</span>: [<span class="title class_">React</span>.<span class="property">addons</span>.<span class="property">PureRenderMixin</span>],</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123;this.props.items.map((item) =&gt; &#123;</span></span><br><span class="line"><span class="language-xml">          return (</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">TodoItem</span> <span class="attr">key</span>=<span class="string">&#123;item.id&#125;</span> <span class="attr">item</span>=<span class="string">&#123;item&#125;</span> <span class="attr">tags</span>=<span class="string">&#123;Todos.tags&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">             <span class="attr">deleteItem</span>=<span class="string">&#123;this.props.deleteItem&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">           );</span></span><br><span class="line"><span class="language-xml">        &#125;)&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">TodoItem</span> = <span class="title class_">React</span>.<span class="title function_">createClass</span>(&#123;</span><br><span class="line">  <span class="attr">mixins</span>: [<span class="title class_">React</span>.<span class="property">addons</span>.<span class="property">PureRenderMixin</span>],</span><br><span class="line">  <span class="attr">propTypes</span>: &#123;</span><br><span class="line">    <span class="attr">deleteItem</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">func</span>.<span class="property">isRequired</span>,</span><br><span class="line">    <span class="attr">tags</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="title function_">arrayOf</span>(<span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">string</span>.<span class="property">isRequired</span>).<span class="property">isRequired</span>,</span><br><span class="line">    <span class="attr">item</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="title function_">shape</span>(&#123;</span><br><span class="line">      <span class="attr">text</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">string</span>.<span class="property">isRequired</span>,</span><br><span class="line">      <span class="attr">id</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">number</span>.<span class="property">isRequired</span>,</span><br><span class="line">    &#125;).<span class="property">isRequired</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">deleteItem</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">props</span>.<span class="title function_">deleteItem</span>(<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">item</span>.<span class="property">id</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">button</span> <span class="attr">style</span>=<span class="string">&#123;&#123;width:</span> <span class="attr">30</span>&#125;&#125; <span class="attr">onClick</span>=<span class="string">&#123;this.deleteItem&#125;</span>&gt;</span>x<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;this.props.item.text&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123;this.props.tags.map((tag) =&gt; &#123;</span></span><br><span class="line"><span class="language-xml">          return <span class="tag">&lt;<span class="name">span</span> <span class="attr">key</span>=<span class="string">&#123;tag&#125;</span> <span class="attr">className</span>=<span class="string">&quot;tag&quot;</span>&gt;</span> &#123;tag&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span>;</span></span><br><span class="line"><span class="language-xml">        &#125;)&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">Todos</span> = <span class="title class_">React</span>.<span class="title function_">createClass</span>(&#123;</span><br><span class="line">  <span class="attr">statics</span>: &#123;</span><br><span class="line">    <span class="attr">tags</span>: [<span class="string">&#x27;important&#x27;</span>, <span class="string">&#x27;starred&#x27;</span>],</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">propTypes</span>: &#123;</span><br><span class="line">    <span class="attr">initialItems</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="title function_">arrayOf</span>(<span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="title function_">shape</span>(&#123;</span><br><span class="line">      <span class="attr">text</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">string</span>.<span class="property">isRequired</span>,</span><br><span class="line">      <span class="attr">id</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">number</span>.<span class="property">isRequired</span>,</span><br><span class="line">    &#125;).<span class="property">isRequired</span>).<span class="property">isRequired</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">getInitialState</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="attr">items</span>: <span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">initialItems</span>,</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">addTask</span>(<span class="params">text</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;</span><br><span class="line">      <span class="attr">items</span>: [&#123;<span class="attr">id</span>: <span class="variable constant_">ID</span>++, text&#125;].<span class="title function_">concat</span>(<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">items</span>),</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">deleteItem</span>(<span class="params">itemId</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;</span><br><span class="line">      <span class="attr">items</span>: <span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">items</span>.<span class="title function_">filter</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> item.<span class="property">id</span> !== itemId),</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">render</span>: <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">h1</span>&gt;</span>My TODOs<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">AddTaskForm</span> <span class="attr">addTask</span>=<span class="string">&#123;this.addTask&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">TodoItems</span> <span class="attr">items</span>=<span class="string">&#123;this.state.items&#125;</span> <span class="attr">deleteItem</span>=<span class="string">&#123;this.deleteItem&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">   );</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Create a Todos component, initialized with 1000 items.</span></span><br><span class="line"><span class="keyword">const</span> items = [];</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++) &#123;</span><br><span class="line">  items.<span class="title function_">push</span>(&#123;<span class="attr">id</span>: <span class="variable constant_">ID</span>++, <span class="attr">text</span>: <span class="string">&#x27;Todo Item #&#x27;</span> + i&#125;);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">React</span>.<span class="title function_">render</span>(<span class="language-xml"><span class="tag">&lt;<span class="name">Todos</span> <span class="attr">initialItems</span>=<span class="string">&#123;items&#125;</span> /&gt;</span></span>, <span class="variable language_">document</span>.<span class="property">body</span>);</span><br></pre></td></tr></table></figure>
+
+<p>任何一项重构都能提供实质的性能增益：</p>
+<ul>
+<li>如果我们通过PureRenderMixin来创建一个TodoItems，因为<code>prevProps.items === this.props.items</code>，我们将能通避免重新渲染每一个item来减少O(n)的时间消耗。</li>
+<li>如果我们创建一个AddTaskForm组件时，将文本的state至存在于组件内使，当文本改变时，将不会，Todos组件（列表部分）将不会重新渲染（避免了O（n）的渲染消耗）。</li>
+</ul>
+<p>（将以上的工作）合起来，我们每次键盘的按键操作只会消耗10ms</p>
+<h2 id="CASE-STUDY-2"><a href="#CASE-STUDY-2" class="headerlink" title="CASE STUDY #2:"></a>CASE STUDY #2:</h2><p>场景： 我们想在用户由太多的任务（&gt;3000）时，渲染一个警告，同时我们想给这些todo项添加一个背景样式。</p>
+<p>实施：</p>
+<ul>
+<li>我们由一个近似的todo列表的案例，用（之前的）<code>TodoItems</code>来实现 - 在这个李子中，我们将会把input的文本内容储存在最顶层的组件状态中。</li>
+<li>我们创建了一个<code>TaskWarning</code>的组件，来根据任务的数量来决定消息的渲染。为了封装这层逻辑，我们将会返回null，假如它不该被渲染。</li>
+<li>我们用样式给<code>div:nth-child(even)</code>所匹配到的元素添加一个灰色的背景。</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable constant_">ID</span> = <span class="number">0</span>; <span class="comment">// incrementing counter for todo item ids</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">TodoWarning</span> = <span class="title class_">React</span>.<span class="title function_">createClass</span>(&#123;</span><br><span class="line">  <span class="attr">propTypes</span>: &#123;</span><br><span class="line">  	<span class="attr">itemCount</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">number</span>.<span class="property">isRequired</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">itemCount</span> &gt; <span class="number">3000</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#x27;YOU HAVE TOO MANY TASKS. SLOW DOWN.&#x27;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">TodoItems</span> = <span class="title class_">React</span>.<span class="title function_">createClass</span>(&#123;</span><br><span class="line">  <span class="attr">mixins</span>: [<span class="title class_">React</span>.<span class="property">addons</span>.<span class="property">PureRenderMixin</span>],</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;todoItems&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123;this.props.items.map((item) =&gt; &#123;</span></span><br><span class="line"><span class="language-xml">          return (</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">TodoItem</span> <span class="attr">key</span>=<span class="string">&#123;item.id&#125;</span> <span class="attr">item</span>=<span class="string">&#123;item&#125;</span> <span class="attr">tags</span>=<span class="string">&#123;Todos.tags&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">             <span class="attr">deleteItem</span>=<span class="string">&#123;this.props.deleteItem&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">           );</span></span><br><span class="line"><span class="language-xml">        &#125;)&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">TodoItem</span> = <span class="title class_">React</span>.<span class="title function_">createClass</span>(&#123;</span><br><span class="line">  <span class="attr">mixins</span>: [<span class="title class_">React</span>.<span class="property">addons</span>.<span class="property">PureRenderMixin</span>],</span><br><span class="line">  <span class="attr">propTypes</span>: &#123;</span><br><span class="line">    <span class="attr">deleteItem</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">func</span>.<span class="property">isRequired</span>,</span><br><span class="line">    <span class="attr">tags</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="title function_">arrayOf</span>(<span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">string</span>.<span class="property">isRequired</span>).<span class="property">isRequired</span>,</span><br><span class="line">    <span class="attr">item</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="title function_">shape</span>(&#123;</span><br><span class="line">      <span class="attr">text</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">string</span>.<span class="property">isRequired</span>,</span><br><span class="line">      <span class="attr">id</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">number</span>.<span class="property">isRequired</span>,</span><br><span class="line">    &#125;).<span class="property">isRequired</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">deleteItem</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">props</span>.<span class="title function_">deleteItem</span>(<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">item</span>.<span class="property">id</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">button</span> <span class="attr">style</span>=<span class="string">&#123;&#123;width:</span> <span class="attr">30</span>&#125;&#125; <span class="attr">onClick</span>=<span class="string">&#123;this.deleteItem&#125;</span>&gt;</span>x<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;this.props.item.text&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123;this.props.tags.map((tag) =&gt; &#123;</span></span><br><span class="line"><span class="language-xml">          return <span class="tag">&lt;<span class="name">span</span> <span class="attr">key</span>=<span class="string">&#123;tag&#125;</span> <span class="attr">className</span>=<span class="string">&quot;tag&quot;</span>&gt;</span> &#123;tag&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span>;</span></span><br><span class="line"><span class="language-xml">        &#125;)&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">Todos</span> = <span class="title class_">React</span>.<span class="title function_">createClass</span>(&#123;</span><br><span class="line">  <span class="attr">mixins</span>: [<span class="title class_">React</span>.<span class="property">addons</span>.<span class="property">LinkedStateMixin</span>],</span><br><span class="line">  <span class="attr">statics</span>: &#123;</span><br><span class="line">    <span class="attr">tags</span>: [<span class="string">&#x27;important&#x27;</span>, <span class="string">&#x27;starred&#x27;</span>],</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">propTypes</span>: &#123;</span><br><span class="line">    <span class="attr">initialItems</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="title function_">arrayOf</span>(<span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="title function_">shape</span>(&#123;</span><br><span class="line">      <span class="attr">text</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">string</span>.<span class="property">isRequired</span>,</span><br><span class="line">      <span class="attr">id</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">number</span>.<span class="property">isRequired</span>,</span><br><span class="line">    &#125;).<span class="property">isRequired</span>).<span class="property">isRequired</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">getInitialState</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="attr">items</span>: <span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">initialItems</span>,</span><br><span class="line">      <span class="attr">text</span>: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">addTask</span>(<span class="params">e</span>) &#123;</span><br><span class="line">    e.<span class="title function_">preventDefault</span>();</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;</span><br><span class="line">      <span class="attr">items</span>: [&#123;<span class="attr">id</span>: <span class="variable constant_">ID</span>++, <span class="attr">text</span>: <span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">text</span>&#125;].<span class="title function_">concat</span>(<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">items</span>),</span><br><span class="line">      <span class="attr">text</span>: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">deleteItem</span>(<span class="params">itemId</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;</span><br><span class="line">      <span class="attr">items</span>: <span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">items</span>.<span class="title function_">filter</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> item.<span class="property">id</span> !== itemId),</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">render</span>: <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">TodoWarning</span> <span class="attr">itemCount</span>=<span class="string">&#123;this.state.items.length&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">h1</span>&gt;</span>My TODOs<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">form</span> <span class="attr">onSubmit</span>=<span class="string">&#123;this.addTask&#125;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          <span class="tag">&lt;<span class="name">input</span> <span class="attr">valueLink</span>=<span class="string">&#123;this.linkState(</span>&#x27;<span class="attr">text</span>&#x27;)&#125; /&gt;</span></span></span><br><span class="line"><span class="language-xml">          <span class="tag">&lt;<span class="name">button</span>&gt;</span>Add Task<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">TodoItems</span> <span class="attr">items</span>=<span class="string">&#123;this.state.items&#125;</span> <span class="attr">deleteItem</span>=<span class="string">&#123;this.deleteItem&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">   );</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Create a Todos component, initialized with 1000 items.</span></span><br><span class="line"><span class="keyword">const</span> items = [];</span><br></pre></td></tr></table></figure>
+
+<p>观察诊断：在输入框内快速的输入，页面由很明显的延迟（不超过3000个任务）。如果我们继续添加一个任务（&gt; 3000 个任务），延迟随着按钮消失了。令人惊讶的地方，添加更多的任务似乎解决了这个任务!</p>
+<p>调试：Timeline Profile 展现了一些很有意思的东西：</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/6.png" alt="img"></p>
+<p>因为某些原因，输入单个字符时触发了大量的<code>Recalculate Style</code>，超过了30ms（这就是为什么当我们打字的速度大于30ms&#x2F;每个字符时，我们会观察到Jank【注：应用刷新的速率没有达到设备的刷新速率而产生的卡顿现象】）。</p>
+<p>看看图片底部的<code>First invalidated</code>一节内容。它指出<code>Danger.dangerouslyReplaceNodeWithMarkup</code> 导致了页面的布局失效，从而导致了样式的重新计算。<code>react-with-addons.js:2301</code>处：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">oldChild.<span class="property">parentNode</span>.<span class="title function_">replaceChild</span>(newChild, oldChild);</span><br></pre></td></tr></table></figure>
+
+<p>因为某些原因，React 用一个完全新的DOM节点替换了原先的DOM节点！ 回想起来，生成DOM的操作时非常昂贵的。使用<code>Perf.printDOM()</code>，我们可以看到React在DOM操作时的性能：</p>
+<p><img src="http://benchling.engineering/content/images/2016/02/7.png" alt="img"></p>
+<p>更新的属性反映了当在输入框输入<code>abc</code>时，TaskWarning是不可见的。然而，replace 项（图中的type）又指出了，此时React正在为TaskWarning组件创建DOM，尽管它看起来不应该有明确可见的实体DOM。</p>
+<p>正如上面所展示的，React（&lt;&#x3D; v0.13）使用了一个<code>noscript</code>标签来渲染“no component”，但是却（在做diff时）错误的将两个noscript的标签视为了不相等：<code>noscript</code>最后被另一个noscript替换。此外，回想起来我们给其他的每个元素添加的一个灰色背景的样式。因为CSS的缘故，这3000个节点中任何一个的单独渲染都依赖与它之前的兄弟节点。每次noscript标签被替换，它随后的DOM节点的样式都会被重新计算。</p>
+<p>为了修复这个问题，我们可以：</p>
+<ul>
+<li>让TaskWarning 返回一个空的div</li>
+<li>将TaskWarning组件用一个div包裹起来，这样它就不会去影响css选择器对随后节点的选择。【意味不明】</li>
+<li>升级React :-)</li>
+</ul>
+<p>除此以外。这里最关键的一点时，我们能够自己分析出这些，仅仅通过Timeline Profiler!</p>
+<h1 id="CONCLUSION"><a href="#CONCLUSION" class="headerlink" title="CONCLUSION"></a>CONCLUSION</h1><p>我希望展示react的性能问题在各种开发工具中的表现是有用的（能够帮到大家）- 通过*Timeline *， <em>profiles</em>，和React的Perf工具的配合使用还有很长的道路要走。</p>
+<p>在todolisst中包含上千个项，和随意的着色，似乎有些刻意（简单将就是说我上面举得例子看起来有点不切实际），不过它所变面出的问题却和我们在做electronic lab notebook的项目中实际中遇到的渲染大量文档和表格时的问题很近似。</p>
+<p>（后面时招聘广告和客套话，省略…）</p>
+<h2 id="读后总结："><a href="#读后总结：" class="headerlink" title="读后总结："></a>读后总结：</h2><p>​	很老的一篇文章了（最然是今年年初的），原本是奔着文章的题目去的，不过发觉内容里貌似也没怎么深入，Perf的介绍和使用主要还是 <a target="_blank" rel="noopener" href="http://benchling.engineering/performance-engineering-with-react/">Part1</a> 中，不过在文中 timeline 和 profile的配合使用中还是学到了一些东西（思考问题的角度），之后看样子还是要好好的学习如何使用chrome 的devtool。</p>
+<p>总结几点吧：</p>
+<ul>
+<li>要使用PureComponentMixin，使用es6的class来创建组件时则应该继承PureComponent。</li>
+<li>合理的拆分组件（组件解耦）。</li>
+<li>常量不要在render时声明，应该抽到外面去。</li>
+<li>文中所提到的noscript的问题，在react的<a target="_blank" rel="noopener" href="https://github.com/facebook/react/issues/2770">https://github.com/facebook/react/issues/2770</a> 中已经解决了，所以返回null也没什么问题了。具体的<a target="_blank" rel="noopener" href="https://github.com/facebook/react/pull/4825/commits/db589a717510d1a2d235d934a0eec4b5609b4e0b">commit</a></li>
+<li>交互的相应理想的状态下要做到30ms内（难点）。文中提到 Jank 的概念。<a target="_blank" rel="noopener" href="http://jankfree.org/">http://jankfree.org/</a></li>
+<li>看源码！看源码！看源码！重要的事情说三遍。</li>
+<li>文中的图片请挂代理…</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/react/" rel="tag"># react</a>
+              <a href="/tags/debug/" rel="tag"># debug</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/10/03/Smart-and-Dumb-Components/" rel="prev" title="【翻译】展示组件和容器组件">
+      <i class="fa fa-chevron-left"></i> 【翻译】展示组件和容器组件
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/01/31/Concurrency%20model%20and%20Event%20loop/" rel="next" title="【翻译】并发模型和事件循环">
+      【翻译】并发模型和事件循环 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CASE-STUDY-1-TODOLIST"><span class="nav-number">1.</span> <span class="nav-text">CASE STUDY #1: TODOLIST</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CASE-STUDY-2"><span class="nav-number">2.</span> <span class="nav-text">CASE STUDY #2:</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CONCLUSION"><span class="nav-number"></span> <span class="nav-text">CONCLUSION</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E5%90%8E%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">读后总结：</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张煜航</p>
+  <div class="site-description" itemprop="description">Do you best, and God will do the lest.</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张煜航</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

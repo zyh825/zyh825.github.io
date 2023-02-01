@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"45UGH4CJ52","apiKey":"c88fb708849de8d55c0523c1f9addc08","indexName":"garannodou","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="作者：Dan Abramov链接：https:&#x2F;&#x2F;medium.com&#x2F;@dan_abramov&#x2F;smart-and-dumb-components-7ca2f9a7c7d0 当我在写react应用时有一种很简单却非常使用的模式。如果你已经写过一段实践的react，那么可能你已经发现了它。这篇文章 将这种模式解释的很好，不过我希望加入一些额外的要点。 你会发">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【翻译】展示组件和容器组件">
+<meta property="og:url" content="http://yoursite.com/2016/10/03/Smart-and-Dumb-Components/index.html">
+<meta property="og:site_name" content="Veda">
+<meta property="og:description" content="作者：Dan Abramov链接：https:&#x2F;&#x2F;medium.com&#x2F;@dan_abramov&#x2F;smart-and-dumb-components-7ca2f9a7c7d0 当我在写react应用时有一种很简单却非常使用的模式。如果你已经写过一段实践的react，那么可能你已经发现了它。这篇文章 将这种模式解释的很好，不过我希望加入一些额外的要点。 你会发">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-10-03T04:21:33.000Z">
+<meta property="article:modified_time" content="2023-02-01T20:30:17.657Z">
+<meta property="article:author" content="张煜航">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="translation">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2016/10/03/Smart-and-Dumb-Components/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>【翻译】展示组件和容器组件 | Veda</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Veda</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A collection of my tranlation and a few of mind。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/10/03/Smart-and-Dumb-Components/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张煜航">
+      <meta itemprop="description" content="Do you best, and God will do the lest.">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Veda">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【翻译】展示组件和容器组件
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2016-10-03 12:21:33" itemprop="dateCreated datePublished" datetime="2016-10-03T12:21:33+08:00">2016-10-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-02-02 04:30:17" itemprop="dateModified" datetime="2023-02-02T04:30:17+08:00">2023-02-02</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>作者：Dan Abramov<br>链接：<a target="_blank" rel="noopener" href="https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0">https:&#x2F;&#x2F;medium.com&#x2F;@dan_abramov&#x2F;smart-and-dumb-components-7ca2f9a7c7d0</a></p>
+<p>当我在写react应用时有一种很简单却非常使用的模式。如果你已经写过一段实践的react，那么可能你已经发现了它。<a target="_blank" rel="noopener" href="https://medium.com/@learnreact/container-components-c0e67432e005#.hr23xqjul">这篇文章</a> 将这种模式解释的很好，不过我希望加入一些额外的要点。</p>
+<p>你会发现当你把你的组件拆分成两类时，它们会变得更加易于复用和理解。我称呼他们为容器组件和展示组件，不过我同样也听到如下几种说法，胖组件(Fat)和瘦(Shinny)组件，聪明组件(Smart)和呆（Dumb）组件，多状态（Statefull）组件和纯(Pure)组件，放映和组件（Screens and Components）。它们不尽相同，但核心的思想却非常接近。</p>
+<p>我所谓的展示组件：</p>
+<ul>
+<li>考虑组件长啥样。</li>
+<li>可能会同时包含展示组件和容器组件在其中，而且通常会含有写DOM标签和私有样式。</li>
+<li>通常用this.props.children来包其他组件。</li>
+<li>不依赖于应用内的其他部分，比如Flux的动作和存储。</li>
+<li>不会定义数据是如何被加载或改变的。</li>
+<li>仅通过props来获取数据和回调函数。</li>
+<li>很少包含私有的状态(如果有的话，也只会是UI的状态而不是应用的数据)</li>
+<li>一般用<a target="_blank" rel="noopener" href="https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html#stateless-functional-components">方法组件</a> 的写法来写，除非它们需要状态，或者控制生命周期，或者优化性能。</li>
+<li>举例： <em>Page, Siderbar, Strory, UserInfo, List</em></li>
+</ul>
+<p>我所谓的容器组件：</p>
+<ul>
+<li>考虑组件是如何运作的。</li>
+<li>可能会同时包含展示组件和容器组件在其中，出了部分包裹用的div不会拥有任何DOM标签，更绝不会有任何样式。</li>
+<li>给展示组件或其他容器组件提供数据和动作。</li>
+<li>调用flux动作，并为展示组件提供回调函数</li>
+<li>通常会有很多状态，而且通常是应用服务的数据。</li>
+<li>通常通过<a target="_blank" rel="noopener" href="https://medium.com/@dan_abramov/mixins-are-dead-long-live-higher-order-components-94a0d2f9e750#.tghakfcnl">高阶组件</a> 来生成，比如React Redux的connect()组件， Relay的createContainer()，Flux Utils的Container.create()，而不是手工的去写。</li>
+<li>举例：<em>UserPage, FollowersSidebar, StoryContainer, FollowedUserList.</em></li>
+</ul>
+<p>我将它们放在不同的文件夹下，从而使它们的作用更加明确。</p>
+<h3 id="这种做法的好处"><a href="#这种做法的好处" class="headerlink" title="这种做法的好处"></a>这种做法的好处</h3><ul>
+<li>将专注的点分离，通过这种方式，你可以更好的理解你的应用和你的UI。</li>
+<li>更好的复用。你可以使用相同的展示组件通过不同的状态源，也可以封装成容器组件，在未来复用它。</li>
+<li>展示组件本质上是你的应用的“调色板”。你可以将他们放到一个单独的页面内，并且让设计师随意的来调整它们的样式，而不会碰触来应用的逻辑部分。你可以在哪个页面内进行screenshot regression测试。</li>
+<li>这会强迫你去解析“布局组件”，比如Sidebar,Page,ContextMeanu 并且使用this.props.children来传递，而不是粘贴复制那块的jsx。</li>
+</ul>
+<p>记住，组件不一定要生成DOM，它们只需要提供UI上的组合关系和界限。</p>
+<h3 id="什么时候去进去容器？"><a href="#什么时候去进去容器？" class="headerlink" title="什么时候去进去容器？"></a>什么时候去进去容器？</h3><p>我建议你在构建你的应用时，先写展示组件的部分。最后，你会发现，你在中间组件中传递了太多的props。当你注意到部分组件并不需要它所接受的prop，而只是传递给它们的子组件，而当子组件需要更多数据，你不得不如重写所有这些中间组件，这时就是引入容器的最佳时机。这样做，你可以将数据和一些动作的props给余下的组件，而不必去在组件树中负担一些无关的组件。</p>
+<p>这是一种循序渐进的不断重构的过程，所以没必要在一开始就做到位。当你不断地实现这种模式时，记得只要像你知道何时去增加新的方法一样来增加新的组件就可以了。我的免费的redux教程系列也许会对你有帮助。</p>
+<h3 id="其他的二分性"><a href="#其他的二分性" class="headerlink" title="其他的二分性"></a>其他的二分性</h3><p>有很重要的一点你必须知道，容器组件和展示组件的区别并不是技术上的差别，而是两者在目的上的区别。为了比较，我再列举了一些有联系的（但是是不同的！）二分性。</p>
+<ul>
+<li>多状体和无状态。一部分组件使用了React.setState()方法，而另一部分则没有。容器组件有很多状态，展示组件状态很少，没错，但这并不是一套铁规则。展示组件也可以有很多状态，同理，容器组件的状态也可以很少。</li>
+<li>类和函数。从React0.14版本开始，组件可以用类和函数两种方式来生命了。函数组件更容易声明，不过它们缺少了一些只属于类的特性。这些限制或许再未来会消失，但至少现在是存在的。因为函数组件更易于理解，所以我建议你使用它们，除非你需要状态，再生命周期上添加处理，或是需要优化性能，这种时候只能使用类声明的组件了。</li>
+<li>纯的和不纯的。人们说一个组件是纯的，给它相同的props和state时，返回的结果一定时相同的。纯组件可以被定义为类和函数，同时既可以时充满状态的也可以使无状态的。纯组件的另一个重要的部分是，春组件并不会因为所谓的props和state产生一些深层的改变，所以可以通过在shouldComponentUpdate函数内浅比较state和props来优化性能。目前只有类组件可以声明shouldComponentUpdate方法，不过在未来这可能会改变。</li>
+</ul>
+<p>展示组件和容器组件都有上述的特性。在我的经验来看，展示组件倾向于无状态的纯函数，而容器组件情况于多状态的纯类。当然了，这只是我的经验之谈，而不是铁则，我也见过一些完全相反的情况。不要将展示组件和容器组件当作教条。有些时候，划清这条线并不是必要，而且有时很难分清。如果你感到不确定一个组件是展示组件还是容器组件时，不要太纠结，可能时候未到。</p>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p>Michael Chan的这篇梗概中讨论了这个。</p>
+<h3 id="衍生阅读"><a href="#衍生阅读" class="headerlink" title="衍生阅读"></a>衍生阅读</h3><ul>
+<li><p><a target="_blank" rel="noopener" href="https://egghead.io/series/getting-started-with-redux">Getting Started with Redux</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://medium.com/@dan_abramov/mixins-are-dead-long-live-higher-order-components-94a0d2f9e750">Mixins are Dead, Long Live Composition</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://medium.com/@learnreact/container-components-c0e67432e005">Container Components</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://bradfrost.com/blog/post/atomic-web-design/">Atomic Web Design</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://facebook.github.io/react/blog/2015/03/19/building-the-facebook-news-feed-with-relay.html">Building the Facebook News Feed with Relay</a></p>
+</li>
+</ul>
+<h3 id="脚注"><a href="#脚注" class="headerlink" title="脚注"></a>脚注</h3><p>在这篇文章的早些版本中我们称之为聪明组件和呆组件，不过这对展示组件来说有些讲的太过分了，而且这并不能很好的解释两者的意图。我很喜欢这对新的叫法，希望你也是。</p>
+<p>在这篇文章的早些版本中我声称展示组件只能包含其他的展示组件。如今我不太认为这时对的。一个组件时展示组件还是容器组件应该由他的内部细节决定。你应该能够用通过容器组件来替换掉一个展示组件同时不修改任何调用的地方。因此，展示组件和容器组件都可以包含其他展示组件和容器组件，这是没问题的。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+              <a href="/tags/translation/" rel="tag"># translation</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2016/12/04/A%20deep%20dive%20into%20react%20perf%20debugging%20(part%202)/" rel="next" title="【翻译】深入 React Pref 调试 (PART2)">
+      【翻译】深入 React Pref 调试 (PART2) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%99%E7%A7%8D%E5%81%9A%E6%B3%95%E7%9A%84%E5%A5%BD%E5%A4%84"><span class="nav-number">1.</span> <span class="nav-text">这种做法的好处</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E5%8E%BB%E8%BF%9B%E5%8E%BB%E5%AE%B9%E5%99%A8%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">什么时候去进去容器？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%9A%84%E4%BA%8C%E5%88%86%E6%80%A7"><span class="nav-number">3.</span> <span class="nav-text">其他的二分性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-number">4.</span> <span class="nav-text">例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%8D%E7%94%9F%E9%98%85%E8%AF%BB"><span class="nav-number">5.</span> <span class="nav-text">衍生阅读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%84%9A%E6%B3%A8"><span class="nav-number">6.</span> <span class="nav-text">脚注</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张煜航</p>
+  <div class="site-description" itemprop="description">Do you best, and God will do the lest.</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张煜航</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
